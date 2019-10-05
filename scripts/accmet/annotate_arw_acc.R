@@ -1,29 +1,54 @@
+args <- commandArgs()
+
+help <- function(){
+    cat("annotate_arw_acc.R :
+quantify methylation rates over genomic annotations
+input is raw methylation data (1 file per cell)
+output is quantified methylation data (1 file per annotation)\n")
+    cat("Usage: \n")
+    cat("--anno        : path to annotation files                               [required]\n")
+    cat("--raw         : path to raw binarised methylation/accessibility files  [required]\n")
+    cat("--meta        : stats table with qc information                        [required]\n")
+    cat("--outdir      : output directory                                       [required]\n")
+    cat("\n")
+    q()
+}
+
+io   <- list()
+opts <- list()
+
+## Save values of each argument
+if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
+    help()
+} else {
+    io$anno_dir   <- sub( '--anno=', '', args[grep('--anno', args)] )
+    io$raw_files  <- sub( '--raw=', '', args[grep('--raw', args)] )
+    io$meta_data  <- sub( '--meta=', '', args[grep('--meta', args)] )
+    io$out_dir    <- sub( '--outdir=', '', args[grep('--outdir', args)] )
+}
+
+
 library(data.table)
 library(purrr)
 library(furrr)
 
 
-# quantify methylation rates over genomic annotations
-# input is raw methylation data (1 file per cell)
-# output is quantified methylation data (1 file per annotation)
+### TEST INPUT ###
+#io$anno_dir <- "../../../test_git/scNMT_NOMeWorkFlow/data/anno"
+#io$raw_files <- "../../../test_git/scNMT_NOMeWorkFlow/bismarkSE/CX/coverage2cytosine_1based/filt/binarised"
+#io$meta_data <- "../../../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$out_dir <- "../../data/acc"
 
-io <- list()
-
-io$anno_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/features/filt"
-io$raw_files <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/acc/raw"
-io$meta_data <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/sample_metadata.tsv"
-io$out_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/acc/parsed"
 
 dir.create(io$out_dir, recursive = TRUE)
 
-opts <- list()
-opts$anno_regex <- "" # use to select specific annotations
+
+opts$anno_regex <- "CGI_promoter|MCF7_ER_peaks|H3K27ac_peaks|body|Repressed|Enhancer|CTCF" # use to select specific annotations
 opts$parallel <- FALSE
 opts$cores <- 2
 opts$gzip <- TRUE
 opts$extend_anno_len <- FALSE
 opts$anno_len <- 500
-
 
 ### functions ###
 fread_gz = function(filename, ...){
@@ -39,23 +64,22 @@ fread_gz = function(filename, ...){
 
 meta <- fread(io$meta_data)
 
-if (grepl("met", io$raw_files)) {
-   meta <- meta[pass_metQC == TRUE]
-   cells <- meta[, sample]
-   files <- meta[, paste0(io$raw_files, "/", id_met, ".tsv.gz")]
-} else {
-  meta <- meta[pass_accQC == TRUE]
-  cells <- meta[, sample]
-  files <- meta[, paste0(io$raw_files, "/", id_acc, ".tsv.gz")]
-}
+#if (grepl("met", io$raw_files)) {
+#  meta <- meta[context == "CG" & pass_metQC == TRUE]
+#  cells <- meta[, sample]
+#  files <- meta[, paste0(io$raw_files, "/", id, "_GpC.gz")]
+#} else {
+meta <- meta[context == "GC" & pass_accQC == TRUE]
+cells <- meta[, sample]
+files <- meta[, paste0(io$raw_files, "/", id, "_GpC.gz")]
+#}
 
 cells <- cells[file.exists(files)]
 files <- files[file.exists(files)]
 
-
 ### load annotations ###
 
-anno <- dir(io$anno_dir, pattern = ".bed", full = TRUE) %>%
+anno <- dir(io$anno_dir, pattern = ".bed$", full = TRUE) %>%
   .[grep(opts$anno_regex, .)]%>%
 #    map2(., sub(".bed", "", basename(.)), ~fread(.x, colClasses = list("factor" = 1L)) %>% 
 #           setnames(c("chr", "start", "end", "strand", "id", "anno")) %>% 
@@ -63,6 +87,9 @@ anno <- dir(io$anno_dir, pattern = ".bed", full = TRUE) %>%
     map(fread, colClasses = list("character" = 1)) %>%
   rbindlist() %>% setnames(c("chr", "start", "end", "strand", "id", "anno")) %>%
   setkey(chr, start, end)
+
+# ensure chr column has correct prefix
+anno[, chr := sub("chr", "", chr) %>% paste0("chr", .)]
 
 if (opts$extend_anno_len) {
   anno <- anno[, mid := start + (end-start)/2] 
@@ -72,7 +99,7 @@ if (opts$extend_anno_len) {
 
 
 ### perform overlap and quantification ###
-
+setkey(anno, chr, start, end)
 
 if (opts$parallel) {
   plan(multiprocess, workers = opts$cores)
@@ -81,21 +108,26 @@ if (opts$parallel) {
 }
 
 acc_dt <- future_map2(files, cells, ~{
-#acc_dt <- map2(files, cells, ~{
+  #acc_dt <- map2(files, cells, ~{
   if (!file.exists(.x)) return(NULL)
   fread(.x, select=c(1:2,5), colClasses = list("factor" = 1L)) %>%
-  #fread_gz(.x, select = c(1:2, 5), colClasses = list("factor" = 1L)) %>%
-   # .[, .(chr = gsub("chr", "", chr),
+    #fread_gz(.x, select = c(1:2, 5), colClasses = list("factor" = 1L)) %>%
+     #.[, .(chr = gsub("chr", "", chr),
     .[, .(chr = chr,
           start = pos,
           end = pos,
           rate)] %>%
     setkey(chr, start, end) %>%
     foverlaps(anno, nomatch = 0L) %>% 
-    .[, .(rate = round(100 * mean(rate)), .N, sample = .y), .(id, anno)]
+    .[, .(rate = round(100 * mean(rate)), 
+          Nmet = sum(rate == 1), 
+          .N, 
+          sample = .y), 
+      .(id, anno)]
 }) %>%
   purrr::compact() %>%
   rbindlist()
+
 
 setkey(acc_dt, anno)
 acc_dt <- split(acc_dt, by = "anno")

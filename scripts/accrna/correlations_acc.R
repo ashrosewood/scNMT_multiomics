@@ -1,4 +1,35 @@
-library(SingleCellExperiment)
+args <- commandArgs()
+
+help <- function(){
+    cat("correlations_acc.R :
+Correlates accessibility and RNA\n")
+    cat("Usage: \n")
+    cat("--anno        : path to annotation files                               [required]\n")
+    cat("--meta        : stats table with QC info                               [required]\n")
+    cat("--SO          : Seurat object with RNA information                     [required]\n")
+    cat("--accdir      : path to annotated accessibility files                  [required]\n")
+    cat("--genefile    : gene metadata file                                     [required]\n")
+    cat("--plotdir      : output directory                                       [required]\n")
+    cat("\n")
+    q()
+}
+
+io   <- list()
+opts <- list()
+
+## Save values of each argument
+if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
+    help()
+} else {
+    io$anno_dir   <- sub( '--anno=', '', args[grep('--anno', args)] )
+    io$rna_sce    <- sub( '--SO=', '', args[grep('--SO', args)] )
+    io$meta_data  <- sub( '--meta=', '', args[grep('--meta', args)] )
+    io$plot_dir   <- sub( '--plotdir=', '', args[grep('--plotdir', args)] )
+    io$met_dir    <- sub( '--accdir=', '', args[grep('--accdir', args)] )
+    io$gene_file  <- sub( '--genefile=', '', args[grep('--genefile', args)] )
+}
+
+library(Seurat)
 library(scater)
 library(data.table)
 library(purrr)
@@ -6,25 +37,24 @@ library(weights)
 library(ggplot2)
 library(cowplot)
 library(ggrepel)
+library(stringr)
+
+### TEST INPUT ###
+#io$meta_data <- "../../../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$met_dir <- "../../data/acc"
+#io$rna_sce <- "../../../scNMT_transcriptomeMapping/data/SeuratObject.rds"
+#io$anno_dir <- "../../../test_git/scNMT_NOMeWorkFlow/data/anno"
+#io$gene_file <- "../../../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$plot_dir <- "../../plots/cor_acc/"
 
 
-io <- list()
-io$meta_data <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/sample_metadata.tsv"
-io$met_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/acc/parsed"
-io$rna_sce <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/rna/parsed_hg19/SingleCellExperiment.rds"
-io$anno_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/features/filt/"
-io$gene_file <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/features/genes_hg19/gene_metadata.tsv.gz"
-
-opts <- list()
-opts$anno_regex <- ""
-opts$gene_overlap_dist <- 1e4 # overlap annoations with genes within xx bp
+opts$anno_regex <- "CGI_promoter|MCF7_ER_peaks|H3K27ac_peaks|body|Repressed|Enhancer|CTCF"
+opts$gene_overlap_dist <- 1e5 # overlap annoations with genes within xx bp
 opts$min_weight_met <- 1
-opts$min_cells_met <- 20 # loci must have observations in this many cells
+opts$min_cells_met <- 10 # loci must have observations in this many cells
 opts$min_cells_rna <- 5 # genes must have exp>0 in this many cells
-
 opts$filt_rna_var <- 0.5 # select the top xx fraction by variance
 opts$filt_met_var <- 0.5 # select the top xx fraction by variance
-
 opts$p_cutoff <- 0.1
 
 
@@ -36,17 +66,28 @@ fread_gz <- function(path, ...){fread(x, ...)}
 ### load metadata and select cells ####
 
 meta <- fread(io$meta_data) %>%
-  .[pass_accQC == TRUE & pass_metQC == TRUE & pass_rnaQC == TRUE]
+  .[pass_accQC == TRUE & pass_metQC == TRUE]
 
 ### load rna and format as data.table ###
 
-rna <- readRDS(io$rna_sce) %>%
-  .[, meta[, id_rna]] %>%
-  exprs() %>%
-  as.data.frame() %>%
+rna <- readRDS(io$rna_sce)
+rna <- rna@assays$RNA@data
+colnames(rna) <- str_extract(colnames(rna),"_[A-Z0-9]+_")
+colnames(rna) <- gsub("([A-Z])0([0-9])","\\1\\2",colnames(rna))
+
+meta$id_rna <- str_extract(meta$id,"_[A-Z0-9]+_")
+rna <- as.data.frame(rna)
+rna$ens_id <- rownames(rna)
+#rna <- rna[,unique(meta$id_rna)]
+#rna <- setDT(rna, keep.rownames = "ens_id")
+#rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
+#rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
+
+rna <- rna %>%
+  .[, unique(meta[, id_rna])] %>%
   setDT(keep.rownames = "ens_id") %>%
   melt(id.vars = "ens_id", value.name = "exp", variable.name = "id_rna") %>%
-  merge(meta[, .(id_rna, sample)], by = "id_rna")
+  merge(meta[, .(id_rna, sample)], by = "id_rna",allow.cartesian=TRUE)
 
 
 ### filter rna ###
@@ -63,12 +104,11 @@ rna <- rna[ens_id %in% filt_genes_var]
 
 ### load met data ###
 
-met <- dir(io$met_dir, pattern = ".tsv.gz$", full = TRUE) %>%
+met <- dir(io$met_dir, pattern = ".gz$", full = TRUE) %>%
   .[grep(opts$anno_regex, .)] %>%
   # map(fread_gz) %>%
   map(fread) %>%
   rbindlist()
-
 
 
 ### annotate with gene name and keep only loci with nearby genes ###
@@ -79,6 +119,7 @@ genes <- fread(io$gene_file) %>%
                                     gsub("chr", "", chr))] %>%
   setkey(chr, start, end)
 
+ 
 anno <- dir(io$anno_dir, full = TRUE, pattern = ".bed$") %>%
   .[grep(opts$anno_regex, .)] %>%
   map(fread) %>%
@@ -102,6 +143,7 @@ anno[["FALSE"]] <- setkey(anno[["FALSE"]], chr, start, end) %>%
 
 anno <- map(anno, ~.[, .(id, anno, gene, ens_id)]) %>%
   rbindlist()
+
 
 met <- merge(met, anno, by = c("anno", "id"), allow.cartesian = TRUE) # note some loci have >1 gene -> cartesian join
 
@@ -154,7 +196,15 @@ p <- ggplot(cors, aes(r, logpadj, colour = sig, label = gene)) +
   theme_bw()
 p
 
+if(!exists(io$plot_dir)){
+  dir.create(io$plot_dir)
+}
 
-save_plot("Box/My_NMT-seq_work/Stephen/my_plots/corr/acc_rna_correlations.pdf", p, base_width = 12, base_height = 12)
+save_plot(paste(io$plot_dir, "acc_rna_correlations.pdf", sep="/"), p, base_width = 12, base_height = 8)
+
+fwrite(cors
+       , paste(io$plot_dir, "acc_rna_correlations.tsv", sep="/"), sep="\t", 
+       col.names = T, row.names = F, quote=F, na="NA")
+
 
 

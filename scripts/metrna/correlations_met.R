@@ -1,4 +1,36 @@
-library(SingleCellExperiment)
+args <- commandArgs()
+
+help <- function(){
+    cat("correlations_met.R :
+Correlates methylation and RNA\n")
+    cat("Usage: \n")
+    cat("--anno        : path to annotation files                               [required]\n")
+    cat("--meta        : stats table with QC info                               [required]\n")
+    cat("--SO          : Seurat object with RNA information                     [required]\n")
+    cat("--accdir      : path to annotated methylation files                    [required]\n")
+    cat("--genefile    : gene metadata file                                     [required]\n")
+    cat("--plotdir      : output directory                                      [required]\n")
+    cat("\n")
+    q()
+}
+
+io   <- list()
+opts <- list()
+
+## Save values of each argument
+if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
+    help()
+} else {
+    io$anno_dir   <- sub( '--anno=', '', args[grep('--anno', args)] )
+    io$rna_sce    <- sub( '--SO=', '', args[grep('--SO', args)] )
+    io$meta_data  <- sub( '--meta=', '', args[grep('--meta', args)] )
+    io$plot_dir   <- sub( '--plotdir=', '', args[grep('--plotdir', args)] )
+    io$met_dir    <- sub( '--accdir=', '', args[grep('--accdir', args)] )
+    io$gene_file  <- sub( '--genefile=', '', args[grep('--genefile', args)] )
+}
+
+
+library(Seurat)
 library(scater)
 library(data.table)
 library(purrr)
@@ -6,22 +38,23 @@ library(weights)
 library(ggplot2)
 library(cowplot)
 library(ggrepel)
+library(stringr)
+
+### TEST INPUT ###
+#io$meta_data <- "../../../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$met_dir <- "../../data/met"
+#io$rna_sce <- "../../../scNMT_transcriptomeMapping/data/SeuratObject.rds"
+#io$anno_dir <- "../../../test_git/scNMT_NOMeWorkFlow/data/anno"
+#io$gene_file <- "../../../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$plot_dir <- "../../plots/cor_met"
 
 
-io <- list()
-io$meta_data <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/sample_metadata.tsv"
-io$met_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/met/parsed"
-io$rna_sce <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/rna/parsed_hg19/SingleCellExperiment.rds"
-io$anno_dir <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/features/filt/"
-io$gene_file <- "Box/My_NMT-seq_work/Stephen/code/MCF7_matched-selected/features/genes_hg19/gene_metadata.tsv.gz"
-
-opts <- list()
 opts$anno_regex <- ""
 opts$gene_overlap_dist <- 1e5 # overlap annoations with genes within xx bp
 opts$min_weight_met <- 1
-opts$min_cells_met <- 20 # loci must have observations in this many cells
+opts$min_cells_met <- 10 # loci must have observations in this many cells
 opts$min_cells_rna <- 5 # genes must have exp>0 in this many cells
-
+opts$anno_regex <- "CGI_promoter|_ER_peaks|H3K27ac_peaks|body|Repressed|Enhancer|CTCF"
 opts$filt_rna_var <- 0.5 # select the top xx fraction by variance
 opts$filt_met_var <- 0.5 # select the top xx fraction by variance
 
@@ -36,18 +69,27 @@ fread_gz <- function(path, ...){fread(x, ...)}
 ### load metadata and select cells ####
 
 meta <- fread(io$meta_data) %>%
-  .[pass_accQC == TRUE & pass_metQC == TRUE & pass_rnaQC == TRUE]
+  .[pass_accQC == TRUE & pass_metQC == TRUE]
 
 ### load rna and format as data.table ###
+rna <- readRDS(io$rna_sce)
+rna <- rna@assays$RNA@data
+colnames(rna) <- str_extract(colnames(rna),"_[A-Z0-9]+_")
+colnames(rna) <- gsub("([A-Z])0([0-9])","\\1\\2",colnames(rna))
 
-rna <- readRDS(io$rna_sce) %>%
-  .[, meta[, id_rna]] %>%
-  exprs() %>%
-  as.data.frame() %>%
+meta$id_rna <- str_extract(meta$id,"_[A-Z0-9]+_")
+rna <- as.data.frame(rna)
+rna$ens_id <- rownames(rna)
+#rna <- rna[,unique(meta$id_rna)]
+#rna <- setDT(rna, keep.rownames = "ens_id")
+#rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
+#rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
+
+rna <- rna %>%
+  .[, unique(meta[, id_rna])] %>%
   setDT(keep.rownames = "ens_id") %>%
   melt(id.vars = "ens_id", value.name = "exp", variable.name = "id_rna") %>%
-  merge(meta[, .(id_rna, sample)], by = "id_rna")
-
+  merge(meta[, .(id_rna, sample)], by = "id_rna",allow.cartesian=TRUE)
 
 ### filter rna ###
 
@@ -63,12 +105,11 @@ rna <- rna[ens_id %in% filt_genes_var]
 
 ### load met data ###
 
-met <- dir(io$met_dir, pattern = ".tsv.gz$", full = TRUE) %>%
+met <- dir(io$met_dir, pattern = ".gz$", full = TRUE) %>%
   .[grep(opts$anno_regex, .)] %>%
- # map(fread_gz) %>%
+  # map(fread_gz) %>%
   map(fread) %>%
   rbindlist()
-
 
 
 ### annotate with gene name and keep only loci with nearby genes ###
@@ -79,6 +120,7 @@ genes <- fread(io$gene_file) %>%
                                     gsub("chr", "", chr))] %>%
   setkey(chr, start, end)
 
+ 
 anno <- dir(io$anno_dir, full = TRUE, pattern = ".bed$") %>%
   .[grep(opts$anno_regex, .)] %>%
   map(fread) %>%
@@ -89,9 +131,10 @@ anno <- dir(io$anno_dir, full = TRUE, pattern = ".bed$") %>%
         strand = strand,
         id = id,
         anno = anno
-        )] %>% .[!chr %in% c("MT", "Y")] %>%
+  )] %>% .[!chr %in% c("MT", "Y")] %>%
   .[, gene_id := grepl("ENSG", id)] %>%
   split(by = "gene_id", keep.by = FALSE)
+
 
 anno[["TRUE"]] <- anno[["TRUE"]] %>%
   .[, ens_id := id] %>%
@@ -102,6 +145,7 @@ anno[["FALSE"]] <- setkey(anno[["FALSE"]], chr, start, end) %>%
 
 anno <- map(anno, ~.[, .(id, anno, gene, ens_id)]) %>%
   rbindlist()
+
 
 met <- merge(met, anno, by = c("anno", "id"), allow.cartesian = TRUE) # note some loci have >1 gene -> cartesian join
 
@@ -142,23 +186,6 @@ cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id)] %>%
 # labs <- paste0(c("q < ", "q >= "), opts$p_cutoff)
 labs <- c("NS", "Significant")
 
-fwrite(cors, "Box/My_NMT-seq_work/Stephen/my_plots/corr/met_rna_correlations.tsv", sep="\t")
-
-p <- ggplot(cors[!anno=="CGI"], aes(r, logpadj, colour = sig, label = gene)) +
-  geom_point() +
-  facet_wrap(~anno) +
-  scale_colour_manual(values = c("grey", "navy"), labels = labs, name = NULL) +
-  geom_hline(yintercept = -log10(opts$p_cutoff), colour = "blue", linetype = "dashed") +
-  geom_vline(aes(xintercept = mean(r)), colour = "blue") +
-  #geom_text_repel(data = cors[sig == TRUE]) +
-  labs(x = c("Weighted Pearson R"), y = "-log10 q-value") +
-  guides(label = FALSE) +
-  theme_bw()
-p
-
-
-save_plot("Box/My_NMT-seq_work/Stephen/my_plots/corr/met_rna_correlations.pdf", p, base_width = 12, base_height = 12)
-
 p <- ggplot(cors, aes(r, logpadj, colour = sig, label = gene)) +
   geom_point() +
   facet_wrap(~anno) +
@@ -171,6 +198,11 @@ p <- ggplot(cors, aes(r, logpadj, colour = sig, label = gene)) +
   theme_bw()
 p
 
+if(!exists(io$plot_dir)){
+  dir.create(io$plot_dir)
+}
 
-save_plot("Box/My_NMT-seq_work/Stephen/my_plots/corr/met_rna_Allcorrelations.pdf", p, base_width = 12, base_height = 12)
+save_plot(paste(io$plot_dir, "met_rna_correlations.pdf", sep="/"), p, base_width = 12, base_height = 12)
 
+fwrite(cors, paste(io$plot_dir, "met_rna_correlations.tsv", sep="/"), sep="\t", 
+       col.names = T, row.names = F, quote=F, na="NA")
