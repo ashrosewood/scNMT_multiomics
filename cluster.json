@@ -1,0 +1,56 @@
+{
+    "__default__" :
+    {
+        "t" : "35:00:00",
+        "N" : 1,
+        "partition" : "exacloud",
+        "J" : "{rule}.{wildcards}",
+        "o" : "logs/{rule}/{wildcards}_{rule}%j.out",
+        "e" : "logs/{rule}/{wildcards}_{rule}%j.err",
+        "c" : 4,
+        "mem" : 45000
+    },
+    "annotate_acc" :
+    {
+        "J" : "annotate_acc",
+        "e" : "logs/annotate_acc/annotate_acc_%j.err",
+        "o" : "logs/annotate_acc/annotate_acc_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "annotate_met" :
+    {
+        "J" : "annotate_met",
+        "e" : "logs/annotate_met/annotate_met_%j.err",
+        "o" : "logs/annotate_met/annotate_met_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "correlate_acc" :
+    {
+        "J" : "correlate_acc",
+        "e" : "logs/correlate_acc/correlate_acc_%j.err",
+        "o" : "logs/correlate_acc/correlate_acc_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "correlate_met" :
+    {
+        "J" : "correlate_met",
+        "e" : "logs/correlate_met/correlate_met_%j.err",
+        "o" : "logs/correlate_met/correlate_met_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "compare_cor" :
+    {
+        "J" : "compare_cor",
+        "e" : "logs/compare_cor/compare_cor_%j.err",
+        "o" : "logs/compare_cor/compare_cor_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    }
+}
+    
+    
+    
