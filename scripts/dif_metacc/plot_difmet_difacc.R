@@ -105,6 +105,6 @@ accmet <- intersect(acc, met)
 
 accmetrna <- intersect(rnamet, acc)
 
-myV <- createVennObj(nSets = 3, sNames = c("RNA","methylation","accessibility"), sSizes = c(0, 3252, 1007, 12478, 84, 143, 53, 692))
+myV <- createVennObj(nSets = 3, sNames = c("RNA","methylation","accessibility"), sSizes = c(0, length(acc)-length(accmet)-length(accrna)-length(accmetrna), length(met)-length(accmet)-length(rnamet)-length(accmetrna), length(accmet)-length(accmetrna), length(rna)-length(rnamet)-length(accrna)-length(accmetrna), length(accrna)-length(accmetrna), length(rnamet)-length(accmetrna), length(accmetrna)))
 
 myV <- plotVenn(nVennObj = myV, borderWidth = 2, setColors = c('blue', 'red', 'green'), outFile = 'plots/dif_venn.svg')
