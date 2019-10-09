@@ -49,6 +49,38 @@
         "o" : "logs/compare_cor/compare_cor_%j.out",
         "c" : 1,
         "mem" : 16000
+    },
+    "get_groups" :
+    {
+        "J" : "get_groups",
+        "e" : "logs/get_groups/get_groups_%j.err",
+        "o" : "logs/get_groups/get_groups_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "dif_acc" :
+    {
+        "J" : "dif_acc",
+        "e" : "logs/dif_acc/dif_acc_%j.err",
+        "o" : "logs/dif_acc/dif_acc_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "dif_met" :
+    {
+        "J" : "dif_met",
+        "e" : "logs/dif_met/dif_met_%j.err",
+        "o" : "logs/dif_met/dif_met_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
+    "plot_dif" :
+    {
+        "J" : "plot_dif",
+        "e" : "logs/plot_dif/plot_dif_%j.err",
+        "o" : "logs/plot_dif/plot_dif_%j.out",
+        "c" : 1,
+        "mem" : 16000
     }
 }
     
