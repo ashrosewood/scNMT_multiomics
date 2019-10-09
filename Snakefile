@@ -42,7 +42,11 @@ rule all:
        "plots/cor_met/met_rna_correlations.pdf",
        "plots/cor_accmetrna/accmetrna_correlations.scatter.pdf",
        "plots/cor_accmetrna/accmetrna_correlations.tsv",
-       "plots/cor_accmetrna/accmetrna_correlations.boxplot.pdf"
-        
+       "plots/cor_accmetrna/accmetrna_correlations.boxplot.pdf",
+       "plots/acc_volcano.png",
+       "plots/met_volcano.png",
+       "plots/dif_scatter.png",
+       "plots/dif_venn.svg"        
 
 include: "rules/correlations.smk"
+include: "rules/differential.smk"
