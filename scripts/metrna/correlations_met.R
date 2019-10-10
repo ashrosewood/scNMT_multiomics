@@ -41,12 +41,12 @@ library(ggrepel)
 library(stringr)
 
 ### TEST INPUT ###
-#io$meta_data <- "../../../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
-#io$met_dir <- "../../data/met"
-#io$rna_sce <- "../../../scNMT_transcriptomeMapping/data/SeuratObject.rds"
-#io$anno_dir <- "../../../test_git/scNMT_NOMeWorkFlow/data/anno"
-#io$gene_file <- "../../../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
-#io$plot_dir <- "../../plots/cor_met"
+#io$meta_data <- "../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$met_dir <- "data/met"
+#io$rna_sce <- "../scNMT_transcriptomeMapping/data/SeuratObject.rds"
+#io$anno_dir <- "../test_git/scNMT_NOMeWorkFlow/data/anno"
+#io$gene_file <- "../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$plot_dir <- "plots/cor_met"
 
 
 opts$anno_regex <- ""
@@ -102,6 +102,7 @@ filt_genes_var <- rna[, var(exp), ens_id] %>%
 
 rna <- rna[ens_id %in% filt_genes_var]
 
+rna$gene <- rna$ens_id
 
 ### load met data ###
 
@@ -151,17 +152,17 @@ met <- merge(met, anno, by = c("anno", "id"), allow.cartesian = TRUE) # note som
 
 ### join met with rna ###
 
-metrna <- merge(met, rna, by = c("ens_id", "sample"))
+metrna <- merge(met, rna, by = c("sample", "gene"))
 
 
 
 ### filter met data ###
 
 metrna <- metrna[N >= opts$min_weight_met] %>%
-  .[, keep := .N > opts$min_cells_met, .(id, anno, gene, ens_id)] %>%
+  .[, keep := .N > opts$min_cells_met, .(id, anno, gene, ens_id.x)] %>%
   .[keep == TRUE]
 
-filt_met_var <- metrna[, var(rate), .(id, anno, gene, ens_id)] %>%
+filt_met_var <- metrna[, var(rate), .(id, anno, gene, ens_id.x)] %>%
   unique(by = c("id", "anno", "V1")) %>% # need to filter out multiple instances due to some loci having >1 gene
   split(by = "anno") %>%
   map(~.[order(-rank(V1))][1: (.N * opts$filt_met_var), .(id, anno)]) %>%
@@ -178,7 +179,7 @@ compute_cor <- function(exp, rate, N){
     set_names(c("r", "std_err", "t", "p"))
 }
 
-cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id)] %>%
+cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id.x)] %>%
   .[, padj := p.adjust(p, method = "fdr"), .(anno)] %>%
   .[, logpadj := -log10(padj)] %>%
   .[, sig := padj < opts$p_cutoff]
