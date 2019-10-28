@@ -81,7 +81,32 @@
         "o" : "logs/plot_dif/plot_dif_%j.out",
         "c" : 1,
         "mem" : 16000
+    },
+    "load_data" :
+    {
+	"J" : "load_data",
+	"e" : "logs/load_data/load_data_%j.err",
+	"o" : "logs/load_data/load_data_%j.out",
+	"c" : 1,
+	"mem" : 16000
+    },
+    "run_model" :
+    {
+	"J" : "run_model",
+	"e" : "logs/run_model/run_model_%j.err",
+	"o" : "logs/run_model/run_model_%j.out",
+	"c" : 4,
+	"mem" : 64000
+    },
+    "analyze_model" :
+    {
+	"J" : "analyze_model",
+	"e" : "logs/analyze_model/analyze_model_%j.err",
+	"o" : "logs/analyze_model/analyze_model_%j.out",
+	"c" : 1,
+	"mem" : 16000
     }
+	
 }
     
     
