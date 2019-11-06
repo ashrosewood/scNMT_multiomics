@@ -1,28 +1,8 @@
 rule load_data:
-     input:
-        "../scNMT_transcriptomeMapping/data/SeuratObject.rds",
-	"../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv",
-	"../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/body.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/CGI_promoter.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/CTCF.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/Enhancer.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/MCF7_ER_peaks.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/MCF7_H3K27ac_peaks.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/nonCGI_promoter.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/acc/Repressed.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/body.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/CGI_promoter.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/CTCF.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/Enhancer.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/MCF7_ER_peaks.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/MCF7_H3K27ac_peaks.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/nonCGI_promoter.tsv.gz",
-        "../test_git/scNMT_NOMeWorkFlow/data/met/Repressed.tsv.gz"
      output:
         "data/all_matrix_list.rds"
      shell:
-        "Rscript scripts/mofa/load_data.R --met=/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/met --acc=/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/acc/ --rna={input[0]} --qcinfo=/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --genemeta={input[1]} --anno=/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/anno --outdir=data"
+        "Rscript scripts/mofa/load_data.R --met=../scNMT_NOMeWorkFlow/data/met --acc=../scNMT_NOMeWorkFlow/data/acc/ --rna=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --qcinfo=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --genemeta=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --anno=data/anno --outdir=data"
 
 rule run_model:
      input:

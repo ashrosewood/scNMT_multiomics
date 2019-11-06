@@ -3,14 +3,14 @@ rule correlate_acc:
         "plots/cor_acc/acc_rna_correlations.pdf",
         "plots/cor_acc/acc_rna_correlations.tsv"
      shell:
-        "Rscript scripts/accrna/correlations_acc.R --anno=../test_git/scNMT_NOMeWorkFlow/data/anno --meta=../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/SeuratObject.rds --accdir=../test_git/scNMT_NOMeWorkFlow/data/acc --genefile=../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv --plotdir=plots/cor_acc"
+        "Rscript scripts/accrna/correlations_acc.R --anno=data/anno --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../scNMT_NOMeWorkFlow/data/acc --genefile=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_acc"
 
 rule correlate_met:
      output:
         "plots/cor_met/met_rna_correlations.pdf",
         "plots/cor_met/met_rna_correlations.tsv"
      shell:
-        "Rscript scripts/metrna/correlations_met.R --anno=../test_git/scNMT_NOMeWorkFlow/data/anno --meta=../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/SeuratObject.rds --accdir=../test_git/scNMT_NOMeWorkFlow/data/met --genefile=../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv --plotdir=plots/cor_met"
+        "Rscript scripts/metrna/correlations_met.R --anno=data/anno --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../scNMT_NOMeWorkFlow/data/met --genefile=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_met"
 
 rule compare_cor:
      input:
