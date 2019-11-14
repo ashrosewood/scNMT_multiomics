@@ -8,26 +8,26 @@ rule dif_acc:
      input:
         "data/groups.tsv"
      output:
-        "tables/difacc.tsv"
+        "tables/difaccA_vs_B.tsv"
      shell:
-        "Rscript scripts/dif_metacc/difacc.R --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --acc=../scNMT_NOMeWorkFlow/data/acc --anno=data/anno --genemeta=../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv --groups={input} --out={output} --mincells=1"
+        "Rscript scripts/dif_metacc/difacc.R --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --acc=../scNMT_NOMeWorkFlow/data/acc --anno=data/anno --genemeta=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --groups={input} --out=tables/difacc --mincells=1"
 
 rule dif_met:
      input:
         "data/groups.tsv"
      output:
-        "tables/difmet.tsv"
+        "tables/difmetA_vs_B.tsv"
      shell:
-        "Rscript scripts/dif_metacc/difmet.R --meta=../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --met=../scNMT_NOMeWorkFlow/data/met --anno=data/anno --genemeta=../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv --groups={input} --out={output} --mincells=1"
+        "Rscript scripts/dif_metacc/difmet.R --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --met=../scNMT_NOMeWorkFlow/data/met --anno=data/anno --genemeta=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --groups={input} --out=tables/difmet --mincells=1"
 
 rule plot_dif:
      input:
-        "tables/difacc.tsv",
-        "tables/difmet.tsv"
+        "tables/difaccA_vs_B.tsv",
+        "tables/difmetA_vs_B.tsv"
      output:
-        "plots/acc_volcano.png",
-        "plots/met_volcano.png",
-        "plots/dif_scatter.png",
-        "plots/dif_venn.svg"
+        "plots/acc_volcano_A_vs_B.png",
+        "plots/met_volcano_A_vs_B.png",
+        "plots/dif_scatter_A_vs_B.png",
+        "plots/dif_venn_A_vs_B.svg"
      shell:
         "Rscript scripts/dif_metacc/plot_difmet_difacc.R --met={input[1]} --acc={input[0]}"

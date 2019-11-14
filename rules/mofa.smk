@@ -21,24 +21,8 @@ rule analyze_model:
 	"plots/factor_variance.png",
 	"plots/topweights_F1.png",
 	"plots/topweights_F2.png",
-	"plots/topweights_F3.png",
-	"plots/topweights_F4.png",
-	"plots/topweights_F5.png",
-	"plots/topweights_F6.png",
-	"plots/topweights_F7.png",
-	"plots/topweights_F8.png",
-	"plots/topweights_F9.png",
-	"plots/topweights_F10.png",
 	"plots/weights_HM_F1.png",
 	"plots/weights_HM_F2.png",
-	"plots/weights_HM_F3.png",
-	"plots/weights_HM_F4.png",
-	"plots/weights_HM_F5.png",
-	"plots/weights_HM_F6.png",
-	"plots/weights_HM_F7.png",
-	"plots/weights_HM_F8.png",
-	"plots/weights_HM_F9.png",
-	"plots/weights_HM_F10.png",
 	"plots/MOFA_UMAP.png"
      shell:
-        "Rscript scripts/mofa/analyze_model.R --data={input[0]} --model={input[1]} --clusters=2 --plotdir=plots"
+        "Rscript scripts/mofa/analyze_model.R --data={input[0]} --model={input[1]} --clusters=3 --plotdir=plots"

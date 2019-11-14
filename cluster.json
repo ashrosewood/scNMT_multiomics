@@ -63,16 +63,16 @@
         "J" : "dif_acc",
         "e" : "logs/dif_acc/dif_acc_%j.err",
         "o" : "logs/dif_acc/dif_acc_%j.out",
-        "c" : 1,
-        "mem" : 16000
+        "c" : 8,
+        "mem" : 64000
     },
     "dif_met" :
     {
         "J" : "dif_met",
         "e" : "logs/dif_met/dif_met_%j.err",
         "o" : "logs/dif_met/dif_met_%j.out",
-        "c" : 1,
-        "mem" : 16000
+        "c" : 8,
+        "mem" : 64000
     },
     "plot_dif" :
     {

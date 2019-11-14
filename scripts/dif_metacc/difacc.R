@@ -3,7 +3,7 @@
 #####################################################################
 args <- commandArgs()
 
-help <- funtion() {
+help <- function(){
     cat("difacc.R :
 Calculates differential accessibility and outputs a table with the information\n")
     cat("Usage: \n")
@@ -38,6 +38,7 @@ if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
 library(data.table)
 library(purrr)
 library(ggplot2)
+library(parallel)
 
 ### functions ###
 fread_gz = function(filename, ...){
@@ -53,12 +54,12 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 ## Define I/O ##
 #io <- list()
 #io$basedir <- "/Volumes/Data/data/hisham/"
-#io$sample.metadata <- "../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
-#io$data.dir <- "data/acc"
-#io$annos_dir  <- "../test_git/scNMT_NOMeWorkFlow/data/anno"
-#io$gene.metadata <- "../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$sample.metadata <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$data.dir <- "../scNMT_NOMeWorkFlow/data/acc"
+#io$annos_dir  <- "data/anno"
+#io$gene.metadata <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
 #io$groups <- "data/groups.tsv"
-#io$outfile <- "tables/difacc.tsv"
+#io$outfile <- "tables/difacc"
 
 dir.create(dirname(io$outfile))
 
@@ -66,6 +67,7 @@ dir.create(dirname(io$outfile))
 # Define stage and lineage
 opts$groupA <- 0
 opts$groupB <- 1
+opts$groupC <- 2
 
 # Overlap genomic features with nearby genes?
 opts$OverlapWithGenes <- TRUE
@@ -104,7 +106,12 @@ opts$threshold_fdr <- 0.10
 # Load sample metadata and grouping
 groups <- fread(io$groups)
 sample_metadata <- fread(io$sample.metadata)
-sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
+#sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
+
+sample_metadata$id <- strsplit(sample_metadata$id, "_") %>%
+         map_chr(2) %>%
+         gsub("([A-H])0", "\\1", .) %>%
+         paste0("sc_", .)
 
 sample_metadata <- sample_metadata %>%
   .[context == "CG" & pass_metQC == TRUE] %>%
@@ -151,12 +158,14 @@ data <- dir(io$data.dir, pattern = ".tsv.gz", full = TRUE) %>%
 
 
 # Define the two exclusive groups
-sample_metadata[group == opts$groupA, groupAB := "A"]
-sample_metadata[group == opts$groupB, groupAB := "B"]
+sample_metadata[group == opts$groupA, groupABC := "A"]
+sample_metadata[group == opts$groupB, groupABC := "B"]
+sample_metadata[group == opts$groupC, groupABC := "C"]
 
 # Merge methylation data and sample metadata
-data <- merge(data, sample_metadata[, .(sample, group = groupAB)])
+data <- merge(data, sample_metadata[, .(sample, group = groupABC)])
 
+data[is.na(data)] <- 0
 
 # Convert beta value to M value
 if (opts$statistical.test == "t.test")
@@ -201,33 +210,47 @@ if (opts$OverlapWithGenes==TRUE) {
 ## Differential methylation analysis ##
 #######################################
 
+difmetacc <- function(comparison) {
 # Binomial assumption: test of equal proportions using Fisher exact test
-if (opts$statistical.test == "binomial") {
-  diff <- data[, .(
-    A_met=sum(.SD[group=="A",N*(rate/100)]), A_unmet=sum(.SD[group=="A",N*(1-rate/100)]),
-    B_met=sum(.SD[group=="B",N*(rate/100)]), B_unmet=sum(.SD[group=="B",N*(1-rate/100)])), by = c("id","anno", "gene")] %>%
-    .[,p.value := fisher.test(x = matrix( c(A_met, A_unmet, B_met, B_unmet), nrow=2, ncol=2))[["p.value"]], by=c("id","anno", "gene")] %>%
-    .[,c("rateA","rateB"):=list(100*(A_met/(A_met+A_unmet)), 100*(B_met/(B_met+B_unmet)))]
+    variable_list <- LETTERS[1:comparison]
+    for (i in variable_list) {
+        for (j in variable_list) {
+            if (j > i) {
+                A <- i
+                B <- j
+                if (opts$statistical.test == "binomial") {
+                    diff <- data[, .(
+                        A_met=sum(.SD[group==A,N*(rate/100)]), A_unmet=sum(.SD[group==A,N*(1-rate/100)]),
+                        B_met=sum(.SD[group==B,N*(rate/100)]), B_unmet=sum(.SD[group==B,N*(1-rate/100)])), by = c("id","anno", "gene")] %>%
+                        .[,p.value := fisher.test(x = matrix( c(A_met, A_unmet, B_met, B_unmet), nrow=2, ncol=2))[["p.value"]], by=c("id","anno", "gene")] %>%
+                        .[,c(paste0("rate",A),paste0("rate",B)):=list(100*(A_met/(A_met+A_unmet)), 100*(B_met/(B_met+B_unmet)))]
     # T-test under normality assumption
-} else if (opts$statistical.test == "t.test") {
-  diff <- data[, .(
-    N_A = .SD[group=="A",.N], N_B = .SD[group=="B",.N],
-    rateA = mean(.SD[group=="A",rate]), rateB = mean(.SD[group=="B",rate]),
-    p.value = t.test(x=.SD[group=="B",m], y=.SD[group=="A",m], var.equal=FALSE)[["p.value"]]), by = c("id","anno", "gene")]
-}
+                } else if (opts$statistical.test == "t.test") {
+                    diff <- data[, .(
+                        N_A = .SD[group==A,.N], N_B = .SD[group==B,.N],
+                        rateA = mean(.SD[group==A,rate]), rateB = mean(.SD[group==B,rate]),
+                        p.value = t.test(x=.SD[group==B,m], y=.SD[group==A,m], var.equal=FALSE)[["p.value"]]), by = c("id","anno", "gene")]
+                }
 
 # Multiple testing correction and define significant hits
-diff %>%
-  .[,diff:=rateB-rateA] %>%
-  .[,c("padj_fdr") := list(p.adjust(p.value, method="fdr")), by="anno"] %>%
-  .[,c("log_padj_fdr") := list(-log10(padj_fdr))] %>%
-  .[,sig:=(padj_fdr<=opts$threshold_fdr & abs(diff)>opts$min.diff)] %>% 
-  .[,c("rateA","rateB","diff"):=list(round(rateA,2),round(rateB,2),round(diff,2))] %>%
-  .[, comparison := paste0(opts$groupA, "_vs_", opts$groupB)] %>%
-  setorderv("padj_fdr")
+                diff %>%
+                    .[,diff:=diff[,10]-diff[,9]] %>%
+                    .[,c("padj_fdr") := list(p.adjust(p.value, method="fdr")), by="anno"] %>%
+                    .[,c("log_padj_fdr") := list(-log10(padj_fdr))] %>%
+                    .[,sig:=(padj_fdr<=opts$threshold_fdr & abs(diff)>opts$min.diff)] %>% 
+                    .[, comparison := paste0(A, "_vs_", B)] %>%
+                    setorderv("padj_fdr")
+                diff[,9] <- round(diff[,9],2)
+                diff[,10] <- round(diff[,10],2)
+                diff[,11] <- round(diff[,11],2)
+                fwrite_tsv(diff, paste0(io$outfile, A, "_vs_", B, ".tsv"))
+            }
+        }
+    }
+}
 
-##################
-## Save results ##
-##################
+nclusters <- length(unique(data$group))
 
-fwrite_tsv(diff, io$outfile)
+mclapply(nclusters, difmetacc, mc.cores=nclusters*2)
+
+
