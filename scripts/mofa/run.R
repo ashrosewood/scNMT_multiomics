@@ -45,15 +45,23 @@ suppressMessages(library(argparse))
 #io$outdir <- "data"
 #io$trial <- "test"
 #io$data <- "data/all_matrix_list.rds"
-#opts$scale <- FALSE
+
 #opts$factor <- 10
+#opts$scale <- FALSE
+
 
 # print(py_config())
 # print(.libPaths())
 
 my_data <- readRDS(io$data)
 
+
+#for (i in seq(1:length(my_data))) {
+#    my_data[[i]] <- my_data[[i]][-(which(rowVars(my_data[[i]]) == 0)),]
+#}
+
 my_data[[3]] <- my_data[[3]][-996,]
+
 
 # Create MOFAobject
 MOFAobject <- createMOFAobject(my_data)
@@ -64,7 +72,7 @@ DataOptions$scaleViews <- opts$scale
 
 # Model options
 ModelOptions <- getDefaultModelOptions(MOFAobject)
-ModelOptions$numFactors <- opts$factor
+ModelOptions$numFactors <- 10
 
 # Training options
 TrainOptions <- getDefaultTrainOptions()

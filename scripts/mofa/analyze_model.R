@@ -37,6 +37,12 @@ library(irlba)
 library(data.table)
 library(png)
 
+### TEST INPUT ###
+#io$data <- "data/all_matrix_list.rds"
+#io$model <- "data/hdf5/model_trained.hdf5"
+#io$plotdir <- "plots"
+#opts$clusters <- 3
+
 my_data <- readRDS(io$data)
 
 MOFAobject <- createMOFAobject(my_data)
@@ -96,77 +102,6 @@ plotTopWeights(
 )
 dev.off()
 
-png(paste0(io$plotdir,"/topweights_F3.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 3, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F4.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 4, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F5.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 5, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F6.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 6, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F7.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 7, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F8.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 8, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F9.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 9, 
-  nfeatures = 10
-)
-dev.off()
-
-png(paste0(io$plotdir,"/topweights_F10.png"))
-plotTopWeights(
-  object = MOFAobject,
-  view = "rna", 
-  factor = 10, 
-  nfeatures = 10
-)
-dev.off()
 
 png(paste0(io$plotdir,"/weights_HM_F1.png"))
 my_factor1 <- sort(getFactors(MOFAobject,"LF1")[,1])
@@ -208,167 +143,6 @@ plotDataHeatmap(
 )
 dev.off()
 
-png(paste0(io$plotdir,"/weights_HM_F3.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF3")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF3", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F4.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF4")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF4", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F5.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF5")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF5", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F6.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF6")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF6", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F7.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF7")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF7", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F8.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF8")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF8", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F9.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF9")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF9", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-png(paste0(io$plotdir,"/weights_HM_F10.png"))
-my_factor1 <- sort(getFactors(MOFAobject,"LF10")[,1])
-my_order_samples <- names(my_factor1)
-my_df <- data.frame(
-  row.names = my_order_samples,
-#  culture = getCovariates(MOFAobject, "culture")[my_order_samples],
-  factor = my_factor1
-)
-
-plotDataHeatmap(
-  object = MOFAobject, 
-  view = "rna", 
-  factor = "LF10", 
-  features = 20, 
-  transpose = TRUE, 
-  show_colnames=FALSE, show_rownames=TRUE, # pheatmap options
-  cluster_cols = FALSE, annotation_col=my_df # pheatmap options
-)
-dev.off()
-
-
 clusters <- clusterSamples(MOFAobject, k=opts$clusters)
 
 theme_pub <- function() {
@@ -383,7 +157,7 @@ theme_pub <- function() {
   )
 }
 
-factors <- seq(1:10)
+factors <- seq(1:2)
 Z <- getFactors(MOFAobject) %>% .[,factors]
 
 # Scale Z by the variance explained

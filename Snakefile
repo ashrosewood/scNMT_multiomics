@@ -43,34 +43,20 @@ rule all:
        "plots/cor_accmetrna/accmetrna_correlations.scatter.pdf",
        "plots/cor_accmetrna/accmetrna_correlations.tsv",
        "plots/cor_accmetrna/accmetrna_correlations.boxplot.pdf",
-       "plots/acc_volcano.png",
-       "plots/met_volcano.png",
-       "plots/dif_scatter.png",
-       "plots/dif_venn.svg",
-#       "plots/full_variance.png",
-#       "plots/factor_variance.png",
-#       "plots/topweights_F1.png",
-#       "plots/topweights_F2.png",
-#       "plots/topweights_F3.png",
-#       "plots/topweights_F4.png",
-#       "plots/topweights_F5.png",
-#       "plots/topweights_F6.png",
-#       "plots/topweights_F7.png",
-#       "plots/topweights_F8.png",
-#       "plots/topweights_F9.png",
-#       "plots/topweights_F10.png",
-#       "plots/weights_HM_F1.png",
-#       "plots/weights_HM_F2.png",
-#       "plots/weights_HM_F3.png",
-#       "plots/weights_HM_F4.png",
-#       "plots/weights_HM_F5.png",
-#       "plots/weights_HM_F6.png",
-#       "plots/weights_HM_F7.png",
-#       "plots/weights_HM_F8.png",
-#       "plots/weights_HM_F9.png",
-#       "plots/weights_HM_F10.png",
-#       "plots/MOFA_UMAP.png"
+       "plots/acc_volcano_A_vs_B.png",
+       "plots/met_volcano_A_vs_B.png",
+       "plots/dif_scatter_A_vs_B.png",
+       "plots/dif_venn_A_vs_B.svg",
+       "plots/full_variance.png",
+       "plots/factor_variance.png",
+       "plots/topweights_F1.png",
+       "plots/topweights_F2.png",
+       "plots/weights_HM_F1.png",
+       "plots/weights_HM_F2.png",
+       "plots/MOFA_UMAP.png"
        
 
 include: "rules/correlations.smk"
 include: "rules/differential.smk"
+include: "rules/mofa.smk"
+

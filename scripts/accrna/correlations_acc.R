@@ -40,11 +40,11 @@ library(ggrepel)
 library(stringr)
 
 ### TEST INPUT ###
-#io$meta_data <- "../test_git/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
-#io$met_dir <- "data/acc"
-#io$rna_sce <- "../scNMT_transcriptomeMapping/data/SeuratObject.rds"
-#io$anno_dir <- "../test_git/scNMT_NOMeWorkFlow/data/anno"
-#io$gene_file <- "../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$meta_data <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$met_dir <- "../scNMT_NOMeWorkFlow/data/acc"
+#io$rna_sce <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
+#io$anno_dir <- "data/anno"
+#io$gene_file <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
 #io$plot_dir <- "plots/cor_acc/"
 
 
@@ -72,10 +72,10 @@ meta <- fread(io$meta_data) %>%
 
 rna <- readRDS(io$rna_sce)
 rna <- rna@assays$RNA@data
-colnames(rna) <- str_extract(colnames(rna),"_[A-Z0-9]+_")
-colnames(rna) <- gsub("([A-Z])0([0-9])","\\1\\2",colnames(rna))
+#colnames(rna) <- str_extract(colnames(rna),"_[A-Z0-9]+_")
+colnames(rna) <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3",colnames(rna))
 
-meta$id_rna <- str_extract(meta$id,"_[A-Z0-9]+_")
+meta$id_rna <- meta$id
 rna <- as.data.frame(rna)
 rna$ens_id <- rownames(rna)
 #rna <- rna[,unique(meta$id_rna)]
@@ -84,7 +84,7 @@ rna$ens_id <- rownames(rna)
 #rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
 
 rna <- rna %>%
-  .[, unique(meta[, id_rna])] %>%
+  .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%
   setDT(keep.rownames = "ens_id") %>%
   melt(id.vars = "ens_id", value.name = "exp", variable.name = "id_rna") %>%
   merge(meta[, .(id_rna, sample)], by = "id_rna",allow.cartesian=TRUE)
@@ -152,7 +152,7 @@ met <- merge(met, anno, by = c("anno", "id"), allow.cartesian = TRUE) # note som
 
 metrna <- merge(met, rna, by = c("sample", "gene"))
 
-
+metrna[is.na(metrna)] <- 0
 
 ### filter met data ###
 
@@ -177,6 +177,16 @@ compute_cor <- function(exp, rate, N){
     set_names(c("r", "std_err", "t", "p"))
 }
 
+goodexp <- metrna[, sum(exp), .(anno, id, gene, ens_id.x)]
+goodexp <- goodexp[which(goodexp$V1 > 0),]
+
+metrna <- metrna[goodexp, on = c("anno", "id", "gene", "ens_id.x")]
+
+goodrate <- metrna[, sum(rate), .(anno, id, gene, ens_id.x)]
+goodrate <- goodrate[which(goodrate$V1 > 0),]
+
+metrna <- metrna[goodrate, on = c("anno", "id", "gene", "ens_id.x")]
+
 cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id.x)] %>%
   .[, padj := p.adjust(p, method = "fdr"), .(anno)] %>%
   .[, logpadj := -log10(padj)] %>%
@@ -191,7 +201,7 @@ p <- ggplot(cors, aes(r, logpadj, colour = sig, label = gene)) +
   scale_colour_manual(values = c("grey", "navy"), labels = labs, name = NULL) +
   geom_hline(yintercept = -log10(opts$p_cutoff), colour = "blue", linetype = "dashed") +
   geom_vline(aes(xintercept = mean(r)), colour = "blue") +
-  #geom_text_repel(data = cors[sig == TRUE]) +
+  #geom_text_repel(data = cors[sig == TRUE]) +`
   labs(x = c("Weighted Pearson R"), y = "-log10 q-value") +
   guides(label = FALSE) +
   theme_bw()

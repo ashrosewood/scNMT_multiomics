@@ -29,7 +29,7 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na="NA")
 
 ### TEST INPUT ###
 #io <- list()
-#io$seurat <- "/home/groups/CEDAR/doe/methylome-pipeline/scNMT_transcriptomeMapping/data/SeuratObject.rds"
+#io$seurat <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
 #io$out <- "data/groups.tsv"
 
 dir.create(dirname(io$out))

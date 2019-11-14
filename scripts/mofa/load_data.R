@@ -280,26 +280,28 @@ if (opts$overlapGenes) {
 #############################
 
 # Filter features by minimum number of CpGs
+met_dt$var[is.na(met_dt$var)] <- 0
 met_dt <- met_dt[N>=opts$met_min.CpGs]
 
 # Filter features by  minimum number of cells
 met_dt[,N:=.N,by=c("id","anno","gene")]  %>% .[N>=opts$met_min.cells] %>% .[,N:=NULL]
 
 # Filter features by variance
-met_dt <- met_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0] %>% .[,var:=NULL] %>% droplevels()
+met_dt <- met_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0.1] %>% .[,var:=NULL] %>% droplevels()
 
 ###############################
 ## Filter accessibility data ##
 ###############################
 
 # Filter features by minimum number of GpCs
+acc_dt$var[is.na(acc_dt$var)] <- 0
 acc_dt <- acc_dt[N>=opts$acc_min.GpCs]
 
 # Filter features by  minimum number of cells
 acc_dt[,N:=.N,by=c("id","anno","gene")]  %>% .[N>=opts$acc_min.cells] %>% .[,N:=NULL]
 
 # Filter features by variance
-acc_dt <- acc_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0] %>% .[,var:=NULL] %>% droplevels()
+acc_dt <- acc_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0.1] %>% .[,var:=NULL] %>% droplevels()
 
 ################################
 ## Filter RNA expression data ##
@@ -376,9 +378,7 @@ data2 <- met_dt %>% .[,c("sample","id","m","anno")] %>%
 data3 <- acc_dt %>% .[,c("sample","id","m","anno")] %>%  
   setnames(c("sample","feature","value","feature_group")) %>% .[,c("feature","feature_group","sample_group"):=list(paste0("acc_",feature), paste0("acc_",feature_group), "MCF7")]
 
-temp2 <- sapply(strsplit(data1$sample, "_"), function(x) x[2])
-temp2 <- gsub("([A-Z])0([0-9]+)","\\1\\2", temp2)
-temp2 <- paste0("sc_",temp2)
+temp2 <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", data1$sample)
 
 data1$sample <- temp2
 
@@ -406,7 +406,7 @@ acc_cells <- as.character(unique(data3$sample))
 rna_dt$sample <- temp2
 
 met_anno_list <- c("CGI_promoter", "Enhancer", "MCF7_H3K27ac_peaks", "nonCGI_promoter")
-acc_anno_list <- c("CGI_promoter", "Enhancer", "MCF7_H3K27ac_peaks", "nonCGI_promoter")
+acc_anno_list <- c("CGI_promoter", "Enhancer",  "MCF7_H3K27ac_peaks", "nonCGI_promoter")
 
 rna_matrix <- rna_dt[,c("gene","expr","sample")] %>%
   .[,c("sample","gene"):=list(as.character(sample),as.character(gene))] %>%
@@ -446,7 +446,7 @@ all_matrix_list <- c(rna=list(rna_matrix),met_matrix_list,acc_matrix_list)
 saveRDS(all_matrix_list, "data/all_matrix_list.rds")
 
 ###### SMALLER DATASET ###########
-
+'''
 met_matrix_list <- list()
 for (n in unique(met_anno_list)) {
   met_matrix_list[[paste("met",n,sep="_")]] <- met_dt[anno==n,c("id","gene","m","sample")] %>%
@@ -478,3 +478,4 @@ for (n in unique(acc_anno_list)) {
 all_matrix_list <- c(rna=list(rna_matrix),met_matrix_list,acc_matrix_list)
 
 saveRDS(all_matrix_list, "data/all_matrix_list.rds")
+'''
