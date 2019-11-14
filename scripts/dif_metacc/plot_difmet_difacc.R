@@ -33,7 +33,7 @@ library(nVennR)
 #io$difmet <- "tables/difmet.tsv"
 #io$difacc <- "tables/difacc.tsv"
 
-io$difrna <- "../scNMT_transcriptomeMapping/tables/DE_genes.tsv"
+io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
 
 dif <- map(list(met = io$difmet, acc = io$difacc), fread) %>% 
   map(~.[, .(id, gene, anno, padj_fdr, log_padj_fdr, diff, sig)]) 

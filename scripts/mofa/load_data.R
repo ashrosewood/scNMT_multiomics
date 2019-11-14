@@ -41,67 +41,41 @@ library(SummarizedExperiment)
 
 
 opts$met.annoname <- c(
-    "body",
-    "CGI_promoter",
-    "MCF7_ChromHMM_CTCF",
+    "CGI_promoters1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_ChromHMM_Promoter",
-    "MCF7_ChromHMM_Repressed",
-    "MCF7_ER_peaks",
-    "MCF7_ER_rep1_peaks",
-    "MCF7_ER_rep2_peaks",
-    "MCF7_ER_rep3_peaks",
     "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter",
-    "promoters"
+    "nonCGI_promoters1000"
 )
 
 opts$acc.annoname <- c(
-    "body",
-    "CGI_promoter",
-    "MCF7_ChromHMM_CTCF",
+    "CGI_promoters1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_ChromHMM_Promoter",
-    "MCF7_ChromHMM_Repressed",
-    "MCF7_ER_peaks",
-    "MCF7_ER_rep1_peaks",
-    "MCF7_ER_rep2_peaks",
-    "MCF7_ER_rep3_peaks",
     "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter",
-    "promoters"
+    "nonCGI_promoters1000"
 )
 
 opts$met.annos <- c(
     "CGI_promoter",
-    "CTCF",
     "Enhancer",
-    "MCF7_ER_peaks",
     "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter",
-    "Repressed",
-    "body"
+    "nonCGI_promoter"
 )
 
 opts$acc.annos <- c(
     "CGI_promoter",
-    "CTCF",
     "Enhancer",
-    "MCF7_ER_peaks",
     "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter",
-    "Repressed",
-    "body"
+    "nonCGI_promoter"
 )
 
 ####### TEST INPUT #########
-#io$met.dir  <- "/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/met"
-#io$acc.dir  <- "/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/acc"
-#io$rna.file <- "../scNMT_transcriptomeMapping/data/SeuratObject.rds"
+#io$met.dir  <- "../scNMT_NOMeWorkFlow/data/met"
+#io$acc.dir  <- "../scNMT_NOMeWorkFlow/data/acc"
+#io$rna.file <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
 
-#io$sample.metadata <- "/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
-#io$annos_dir       <- "/home/groups/CEDAR/woodfin/projects/NMT-seq/MCF7_plate1_matched/scNMT_NOMeWorkFlow/data/anno"
-#io$gene_metadata   <- "../scNMT_transcriptomeMapping/data/gene_hg19.cellRanger_metadata.tsv"
+#io$sample.metadata <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
+#io$annos_dir       <- "data/anno"
+#io$gene_metadata   <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
 
 #io$outdir <- "data"
 
@@ -140,13 +114,13 @@ opts$rna_ngenes <- 2500       # maximum number of genes (filter based on varianc
 met_dt <- lapply(opts$met.annos, function(n) {
   data <- fread(cmd=sprintf("zcat < %s/%s.tsv.gz",io$met.dir,n), showProgress=F, stringsAsFactors=F, quote="") %>%
     .[sample%in%opts$met_cells]
-}) %>% rbindlist %>% setnames(c("id","anno","rate","Nmet","N","sample"))
+}) %>% rbindlist %>% setnames(c("id","anno","rate","Nmet","N","sample", "var"))
 
 # Load Accessibility data
 acc_dt <- lapply(opts$acc.annos, function(n) {
   data <- fread(cmd=sprintf("zcat < %s/%s.tsv.gz",io$acc.dir,n), showProgress=F, stringsAsFactors=F, quote="") %>%
     .[sample%in%opts$acc_cells]
-}) %>% rbindlist %>% setnames(c("id","anno","rate","Nmet","N","sample"))
+}) %>% rbindlist %>% setnames(c("id","anno","rate","Nmet","N","sample", "var"))
 
 # Load RNA data
 sce <- readRDS(io$rna.file) # %>% .[,opts$rna_cells]
@@ -445,7 +419,7 @@ for (n in unique(met_dt$anno)) {
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
     .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
-    dcast(sample~id_gene, value.var="m", drop=F, fun.aggregate=sum) %>% matrix.please() %>% t
+    dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
   cat(sprintf("%s methylation matrix has dim (%d,%d) with %0.02f%% missing values \n", n,
               nrow(met_matrix_list[[paste("met",n,sep="_")]]), ncol(met_matrix_list[[paste("met",n,sep="_")]]),
@@ -460,7 +434,7 @@ for (n in unique(acc_dt$anno)) {
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
     .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
-    dcast(sample~id_gene, value.var="m", drop=F, fun.aggregate=sum) %>% matrix.please() %>% t
+    dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
   cat(sprintf("%s accessibility matrix has dim (%d,%d) with %0.02f%% missing values \n", n,
               nrow(acc_matrix_list[[paste("acc",n,sep="_")]]), ncol(acc_matrix_list[[paste("acc",n,sep="_")]]),
@@ -469,7 +443,7 @@ for (n in unique(acc_dt$anno)) {
 
 all_matrix_list <- c(rna=list(rna_matrix),met_matrix_list,acc_matrix_list)
 
-#saveRDS(all_matrix_list, "data/all_matrix_list.rds")
+saveRDS(all_matrix_list, "data/all_matrix_list.rds")
 
 ###### SMALLER DATASET ###########
 

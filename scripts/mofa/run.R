@@ -45,11 +45,15 @@ suppressMessages(library(argparse))
 #io$outdir <- "data"
 #io$trial <- "test"
 #io$data <- "data/all_matrix_list.rds"
+#opts$scale <- FALSE
+#opts$factor <- 10
 
 # print(py_config())
 # print(.libPaths())
 
 my_data <- readRDS(io$data)
+
+my_data[[3]] <- my_data[[3]][-996,]
 
 # Create MOFAobject
 MOFAobject <- createMOFAobject(my_data)
@@ -77,3 +81,13 @@ MOFAmodel <- prepareMOFA(MOFAobject,
 # Train the model
 outfile <- sprintf("%s/hdf5/model_%s.hdf5",io$outdir,io$trial)
 model <- runMOFA(MOFAmodel, outfile)
+
+
+
+
+
+
+
+
+
+
