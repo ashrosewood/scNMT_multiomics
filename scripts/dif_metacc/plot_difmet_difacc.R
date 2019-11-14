@@ -34,7 +34,10 @@ library(nVennR)
 #io$difacc <- "tables/difacc.tsv"
 io$data.dir <- "tables"
 
+
 io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
+#io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
+
 
 rnadif <- read.table(io$difrna, header = T, sep = "\t")
 

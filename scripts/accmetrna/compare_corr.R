@@ -42,7 +42,7 @@ opts$p_cutoff <- 0.1
 met <- fread(io$rna_met)
 acc <- fread(io$rna_acc)
 
-df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id.x"), 
+df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id"), 
             suffixes=c(".met", ".acc"))
 
 df$sig <- FALSE
@@ -52,15 +52,17 @@ df[r.met <= -0.5 & r.acc < -0.5 | r.met <= -0.5 & r.acc >= 0.5, sig:=TRUE]
 
 labs <- c("NS", "Significant")
 
-p <- ggplot(df, aes(r.met, r.acc, colour = sig, label = gene)) +
-  geom_point() +
+
+p <- ggplot(df, aes(r.met, r.acc, colour = sig)) +
+    geom_point() +
   facet_wrap(~anno) +
   xlim(-1,1) +
   ylim(-1,1) +
-  scale_colour_manual(values = c("grey", "navy"), labels = labs, name = NULL) +
+                                        #  scale_colour_manual(values = c("grey", "navy"), labels = labs, name = NULL) +
+      scale_colour_manual(values = c("grey", "navy")) +
   geom_hline(yintercept = 0, colour = "blue", linetype = "dashed") +
   geom_vline(xintercept = 0, colour = "blue", linetype = "dashed") +
-  geom_text_repel(data = df[sig == TRUE]) +
+#  geom_text_repel(data = df[sig == TRUE]) +
   labs(x = c("Met-vs-RNA Pearson R"), y = "ACC-vs-RNA Pearson R") +
   guides(label = FALSE) +
   theme_bw()

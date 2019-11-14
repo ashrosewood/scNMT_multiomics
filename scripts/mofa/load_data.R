@@ -419,7 +419,7 @@ for (n in unique(met_dt$anno)) {
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
     .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
-    dcast(sample~id_gene, value.var="m", drop=F, fun.aggregate=sum) %>% matrix.please() %>% t
+    dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
   cat(sprintf("%s methylation matrix has dim (%d,%d) with %0.02f%% missing values \n", n,
               nrow(met_matrix_list[[paste("met",n,sep="_")]]), ncol(met_matrix_list[[paste("met",n,sep="_")]]),
@@ -434,7 +434,7 @@ for (n in unique(acc_dt$anno)) {
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
     .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
-    dcast(sample~id_gene, value.var="m", drop=F, fun.aggregate=sum) %>% matrix.please() %>% t
+    dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
   cat(sprintf("%s accessibility matrix has dim (%d,%d) with %0.02f%% missing values \n", n,
               nrow(acc_matrix_list[[paste("acc",n,sep="_")]]), ncol(acc_matrix_list[[paste("acc",n,sep="_")]]),

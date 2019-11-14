@@ -45,6 +45,7 @@ suppressMessages(library(argparse))
 #io$outdir <- "data"
 #io$trial <- "test"
 #io$data <- "data/all_matrix_list.rds"
+
 #opts$factor <- 10
 #opts$scale <- FALSE
 
@@ -54,14 +55,13 @@ suppressMessages(library(argparse))
 
 my_data <- readRDS(io$data)
 
+
 #for (i in seq(1:length(my_data))) {
 #    my_data[[i]] <- my_data[[i]][-(which(rowVars(my_data[[i]]) == 0)),]
 #}
 
-my_data[[3]] <- my_data[[3]][-595,]
-my_data[[4]] <- my_data[[4]][-367,]
-my_data[[8]] <- my_data[[8]][-52,]
-my_data[[9]] <- my_data[[9]][-921,]
+my_data[[3]] <- my_data[[3]][-996,]
+
 
 # Create MOFAobject
 MOFAobject <- createMOFAobject(my_data)
@@ -89,3 +89,13 @@ MOFAmodel <- prepareMOFA(MOFAobject,
 # Train the model
 outfile <- sprintf("%s/hdf5/model_%s.hdf5",io$outdir,io$trial)
 model <- runMOFA(MOFAmodel, outfile)
+
+
+
+
+
+
+
+
+
+
