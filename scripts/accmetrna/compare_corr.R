@@ -33,9 +33,9 @@ library(ggrepel)
 
 
 ### TEST INPUT ###
-io$rna_met  <- "plots/cor_met/met_rna_correlations.tsv"
-io$rna_acc  <- "plots/cor_acc/acc_rna_correlations.tsv"
-io$plot_dir <- "plots/cor_accmetrna"
+#io$rna_met  <- "plots/cor_met/met_rna_correlations.tsv"
+#io$rna_acc  <- "plots/cor_acc/acc_rna_correlations.tsv"
+#io$plot_dir <- "plots/cor_accmetrna"
 
 opts$p_cutoff <- 0.1
 
