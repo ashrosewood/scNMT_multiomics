@@ -38,7 +38,7 @@ library(nVennR)
 io$data.dir <- "tables"
 
 
-io$difrna <- "../../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
+io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
 #io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
 
 
