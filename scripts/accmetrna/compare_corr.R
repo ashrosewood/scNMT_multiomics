@@ -33,16 +33,16 @@ library(ggrepel)
 
 
 ### TEST INPUT ###
-#io$rna_met  <- "plots/cor_met/met_rna_correlations.tsv"
-#io$rna_acc  <- "plots/cor_acc/acc_rna_correlations.tsv"
-#io$plot_dir <- "plots/cor_accmetrna"
+io$rna_met  <- "plots/cor_met/met_rna_correlations.tsv"
+io$rna_acc  <- "plots/cor_acc/acc_rna_correlations.tsv"
+io$plot_dir <- "plots/cor_accmetrna"
 
 opts$p_cutoff <- 0.1
 
 met <- fread(io$rna_met)
 acc <- fread(io$rna_acc)
 
-df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id"), 
+df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id.x"), 
             suffixes=c(".met", ".acc"))
 
 df$sig <- FALSE

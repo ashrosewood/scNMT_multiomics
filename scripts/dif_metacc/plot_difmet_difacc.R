@@ -19,6 +19,9 @@ if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
     io$difacc   <- sub( '--acc=', '', args[grep('--acc', args)] )
 }
 
+if ("nVennR" %in% rownames(installed.packages()) == FALSE) {
+    install.packages("nVennR", repos="https://ftp.osuosl.org/pub/cran/")
+}
 
 library(data.table)
 library(purrr)
@@ -35,7 +38,7 @@ library(nVennR)
 io$data.dir <- "tables"
 
 
-io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
+io$difrna <- "../../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
 #io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
 
 
