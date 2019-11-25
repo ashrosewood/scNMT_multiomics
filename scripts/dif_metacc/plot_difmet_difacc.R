@@ -19,6 +19,9 @@ if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
     io$difacc   <- sub( '--acc=', '', args[grep('--acc', args)] )
 }
 
+if ("nVennR" %in% rownames(installed.packages()) == FALSE) {
+    install.packages("nVennR", repos="https://ftp.osuosl.org/pub/cran/")
+}
 
 library(data.table)
 library(purrr)

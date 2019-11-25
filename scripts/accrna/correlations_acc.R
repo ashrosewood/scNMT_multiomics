@@ -29,11 +29,15 @@ if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
     io$gene_file  <- sub( '--genefile=', '', args[grep('--genefile', args)] )
 }
 
+if ("weights" %in% rownames(installed.packages()) == FALSE) {
+    install.packages("weights", repos="https://ftp.osuosl.org/pub/cran/")
+}
+
+library(weights)
 library(Seurat)
 library(scater)
 library(data.table)
 library(purrr)
-library(weights)
 library(ggplot2)
 library(cowplot)
 library(ggrepel)

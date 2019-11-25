@@ -42,7 +42,7 @@ opts$p_cutoff <- 0.1
 met <- fread(io$rna_met)
 acc <- fread(io$rna_acc)
 
-df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id"), 
+df <- merge(met, acc, by=c("anno", "id", "gene", "ens_id.x"), 
             suffixes=c(".met", ".acc"))
 
 df$sig <- FALSE
