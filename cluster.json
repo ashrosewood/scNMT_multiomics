@@ -82,6 +82,14 @@
         "c" : 1,
         "mem" : 16000
     },
+    "zoom" :
+    {
+        "J" : "zoom",
+        "e" : "logs/zoom/zoom_%j.err",
+        "o" : "logs/zoom/zoom_%j.out",
+        "c" : 1,
+        "mem" : 16000
+    },
     "load_data" :
     {
 	"J" : "load_data",

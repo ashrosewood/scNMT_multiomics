@@ -5,7 +5,7 @@ rule correlate_acc:
      conda:
         "../envs/NMT_miltiomeCorr.yaml"
      shell:
-        "Rscript scripts/accrna/correlations_acc.R --anno=data/anno --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../scNMT_NOMeWorkFlow/data/acc --genefile=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_acc"
+        "Rscript scripts/accrna/correlations_acc.R --anno=data/anno --meta=../../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../../scNMT_NOMeWorkFlow/data/acc --genefile=../../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_acc"
 
 rule correlate_met:
      output:
@@ -14,7 +14,7 @@ rule correlate_met:
      conda:
         "../envs/NMT_miltiomeCorr.yaml"	
      shell:
-        "Rscript scripts/metrna/correlations_met.R --anno=data/anno --meta=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../scNMT_NOMeWorkFlow/data/met --genefile=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_met"
+        "Rscript scripts/metrna/correlations_met.R --anno=data/anno --meta=../../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --SO=../../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --accdir=../../scNMT_NOMeWorkFlow/data/met --genefile=../../scNMT_transcriptomeMapping/data/gene_metadata.tsv --plotdir=plots/cor_met"
 
 rule compare_cor:
      input:
