@@ -4,7 +4,7 @@ rule load_data:
      conda:
         "../envs/MOFA.yaml"
      shell:
-        "Rscript scripts/mofa/load_data.R --met=../../scNMT_NOMeWorkFlow/data/met --acc=../../scNMT_NOMeWorkFlow/data/acc/ --rna=../../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --qcinfo=../../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --genemeta=../../scNMT_transcriptomeMapping/data/gene_metadata.tsv --anno=data/anno --outdir=data"
+        "Rscript scripts/mofa/load_data.R --met=../scNMT_NOMeWorkFlow/data/met --acc=../scNMT_NOMeWorkFlow/data/acc/ --rna=../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds --qcinfo=../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt --genemeta=../scNMT_transcriptomeMapping/data/gene_metadata.tsv --anno=data/anno --outdir=data"
 
 rule run_model:
      input:

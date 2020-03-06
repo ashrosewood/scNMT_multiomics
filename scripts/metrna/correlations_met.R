@@ -57,7 +57,7 @@ opts$gene_overlap_dist <- 1e5 # overlap annoations with genes within xx bp
 opts$min_weight_met <- 1
 opts$min_cells_met <- 10 # loci must have observations in this many cells
 opts$min_cells_rna <- 5 # genes must have exp>0 in this many cells
-opts$anno_regex <- "CGI_promoter|_ER_peaks|H3K27ac_peaks|body|Repressed|Enhancer|CTCF"
+opts$anno_regex <- "promoter|ER_peak|H3K27ac|body|Repressed|Enhancer|CTCF"
 opts$filt_rna_var <- 0.5 # select the top xx fraction by variance
 opts$filt_met_var <- 0.5 # select the top xx fraction by variance
 
@@ -72,7 +72,7 @@ fread_gz <- function(path, ...){fread(x, ...)}
 ### load metadata and select cells ####
 
 meta <- fread(io$meta_data) %>%
-  .[pass_accQC == TRUE & pass_metQC == TRUE]
+  .[pass_accQC == TRUE & pass_metQC == TRUE & pass_CHGQC == TRUE & pass_CHHQC == TRUE]
 
 ### load rna and format as data.table ###
 rna <- readRDS(io$rna_sce)
@@ -88,6 +88,8 @@ rna$ens_id <- rownames(rna)
 #rna <- setDT(rna, keep.rownames = "ens_id")
 #rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
 #rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
+
+colnames(rna) <- sub("D","_", colnames(rna))
 
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%
@@ -200,6 +202,8 @@ cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id.x)] %>%
 
 # labs <- paste0(c("q < ", "q >= "), opts$p_cutoff)
 labs <- c("NS", "Significant")
+
+cors <- subset(cors, logpadj < 100)
 
 p <- ggplot(cors, aes(r, logpadj, colour = sig, label = gene)) +
   geom_point() +
