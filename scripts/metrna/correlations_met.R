@@ -72,7 +72,7 @@ fread_gz <- function(path, ...){fread(x, ...)}
 ### load metadata and select cells ####
 
 meta <- fread(io$meta_data) %>%
-  .[pass_accQC == TRUE & pass_metQC == TRUE & pass_CHGQC == TRUE & pass_CHHQC == TRUE]
+  .[pass_accQC == TRUE & pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE]
 
 ### load rna and format as data.table ###
 rna <- readRDS(io$rna_sce)

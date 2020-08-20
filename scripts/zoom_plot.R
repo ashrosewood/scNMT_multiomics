@@ -62,6 +62,7 @@ fread_gz = function(filename, ...){
 #io$acc_dir <- "../scNMT_NOMeWorkFlow/bismarkSE/CX/coverage2cytosine_1based/filt/binarised"
 #io$rna_file <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
 #io$outfile <- "plots/zoom"
+
 io$rna_de <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
 io$met_de <- "tables/difmetA_vs_B.tsv"
 io$acc_de <- "tables/difaccA_vs_B.tsv"
@@ -75,7 +76,8 @@ opts$slide <- 1000
 opts$up    <- 20000
 opts$down  <- 20000
 opts$features <- c("promoters", 
-                   "T47D_ER_peaks", "T47D_H3K27ac_peaks")
+                   "MCF7_ER_peaks", "MCF7_H3K27ac_peaks")
+
 
 
 dir.create(io$outfile, recursive = TRUE)
@@ -115,7 +117,8 @@ rna <- data.table(sample = colnames(seurat),
 groups <- fread(io$groups) %>%
   .[, .(sample = gsub("sc_", "", id_rna), group = as.factor(group))]
 
-groups$sample <- sub("D","_", groups$sample)
+groups$sample <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", groups$sample)
+
 
 metacc <- list(acc = paste0(io$acc_dir, "/", cells, "_GpC.gz"),
                met = paste0(io$met_dir, "/", cells, "_CpG.gz")) %>%
@@ -151,7 +154,8 @@ anno <- paste0(io$annos_dir, "/", opts$features, ".bed") %>%
 
 means <- map(metacc, ~.[, .(mean = mean(rate), sd = sd(rate), .N), .(start, end, group)])
 
-rna$sample <- sub("D","_", rna$sample)
+rna$sample <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", rna$sample)
+
 
 cors <- map2(metacc, names(metacc), ~.x[, omic := .y]) %>%
   rbindlist() %>%

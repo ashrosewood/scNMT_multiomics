@@ -69,7 +69,7 @@ meta <- fread(io$meta_data)
 #  cells <- meta[, sample]
 #  files <- meta[, paste0(io$raw_files, "/", id, "_GpC.gz")]
 #} else {
-meta <- meta[context == "GC" & pass_accQC == TRUE]
+meta <- meta[context == "GC" & pass_accQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE]
 cells <- meta[, sample]
 files <- meta[, paste0(io$raw_files, "/", id, "_GpC.gz")]
 #}

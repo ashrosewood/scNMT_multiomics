@@ -41,31 +41,31 @@ library(SummarizedExperiment)
 
 
 opts$met.annoname <- c(
-    "CGI_promoters1000",
+#    "CGI_promoters1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_H3K27ac_peaks",
-    "nonCGI_promoters1000"
+    "MCF7_H3K27ac_peaks"#,
+#    "nonCGI_promoters1000"
 )
 
 opts$acc.annoname <- c(
-    "CGI_promoters1000",
+#    "CGI_promoters1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_H3K27ac_peaks",
-    "nonCGI_promoters1000"
+    "MCF7_H3K27ac_peaks"#,
+#    "nonCGI_promoters1000"
 )
 
 opts$met.annos <- c(
-    "CGI_promoter",
+#    "CGI_promoter",
     "Enhancer",
-    "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter"
+    "MCF7_H3K27ac_peaks"#,
+#    "nonCGI_promoter"
 )
 
 opts$acc.annos <- c(
-    "CGI_promoter",
+#    "CGI_promoter",
     "Enhancer",
-    "MCF7_H3K27ac_peaks",
-    "nonCGI_promoter"
+    "MCF7_H3K27ac_peaks"#,
+#    "nonCGI_promoter"
 )
 
 ####### TEST INPUT #########
@@ -417,7 +417,7 @@ met_matrix_list <- list()
 for (n in unique(met_dt$anno)) {
   met_matrix_list[[paste("met",n,sep="_")]] <- met_dt[anno==n,c("id","gene","m","sample")] %>%
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
-    .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
+    .[,sample:=factor(sample,levels=met_cells)] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
     dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
@@ -432,7 +432,7 @@ acc_matrix_list <- list()
 for (n in unique(acc_dt$anno)) {
   acc_matrix_list[[paste("acc",n,sep="_")]] <- acc_dt[anno==n,c("id","gene","m","sample")] %>%
     .[,c("sample","gene","id"):=list(as.character(sample),as.character(gene),as.character(id))] %>%
-    .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
+    .[,sample:=factor(sample,levels=acc_cells)] %>%
     .[,id_gene:=paste(id,gene,sep="_")] %>%
     dcast(sample~id_gene, value.var="m", drop=F) %>% matrix.please() %>% t
   
@@ -441,7 +441,7 @@ for (n in unique(acc_dt$anno)) {
               100*mean(is.na(acc_matrix_list[[paste("acc",n,sep="_")]]))))
 }
 
-all_matrix_list <- c(rna=list(rna_matrix),met_matrix_list,acc_matrix_list)
+all_matrix_list <- c(met_matrix_list,acc_matrix_list)
 
 saveRDS(all_matrix_list, "data/all_matrix_list.rds")
 

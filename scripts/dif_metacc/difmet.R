@@ -67,6 +67,7 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 opts$groupA <- "TDC1"
 opts$groupB <- "TDE8"
 opts$groupC <- 2
+opts$groupD <- 3
 
 # Overlap genomic features with nearby genes?
 opts$OverlapWithGenes <- TRUE
@@ -107,16 +108,14 @@ groups <- fread(io$groups)
 sample_metadata <- fread(io$sample.metadata)
 #sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
 
-sample_metadata$id <- strsplit(sample_metadata$id, "_") %>%
-         map_chr(2) %>%
-         gsub("([A-H])0", "\\1", .) %>%
-         paste0("sc_", .)
+sample_metadata$id_rna <- gsub("-","",sample_metadata$sample)
 
 groups$sample <- sub("D","_",groups$id_rna)
 
 sample_metadata <- sample_metadata %>% 
-  .[context == "CG" & pass_metQC == TRUE & pass_CHGQC == TRUE & pass_CHHQC == TRUE] %>%
-  merge(groups, by = "sample")
+  .[context == "CG" & pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE] %>%
+  merge(groups, by = "id_rna")
+
   
 opts$cells <- sample_metadata[, id_rna]
 
@@ -168,6 +167,7 @@ data <- dir(io$data.dir, pattern = ".tsv.gz", full = TRUE) %>%
 sample_metadata[group == opts$groupA, groupABC := "A"]
 sample_metadata[group == opts$groupB, groupABC := "B"]
 sample_metadata[group == opts$groupC, groupABC := "C"]
+sample_metadata[group == opts$groupD, groupABC := "D"]
 
 # Merge methylation data and sample metadata
 data <- merge(data, sample_metadata[, .(sample, group = groupABC)], by = "sample")

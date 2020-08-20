@@ -38,10 +38,10 @@ library(data.table)
 library(png)
 
 ### TEST INPUT ###
-#io$data <- "data/all_matrix_list.rds"
-#io$model <- "data/hdf5/model_trained.hdf5"
-#io$plotdir <- "plots"
-#opts$clusters <- 3
+io$data <- "data/all_matrix_list.rds"
+io$model <- "data/hdf5/model_trained.hdf5"
+io$plotdir <- "plots"
+opts$clusters <- 3
 
 my_data <- readRDS(io$data)
 
