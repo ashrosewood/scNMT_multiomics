@@ -68,7 +68,7 @@ fread_gz = function(filename, ...){
 meta <- fread(io$meta_data)
 
 #if (grepl("met", io$raw_files)) {
-meta <- meta[pass_metQC == TRUE]
+meta <- meta[pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE]
 cells <- unique(meta[, sample])
 files <- unique(meta[, paste0(io$raw_files, "/", sample, "_CpG", ".gz")])
 #} else {
