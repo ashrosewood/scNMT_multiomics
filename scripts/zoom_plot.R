@@ -62,13 +62,14 @@ fread_gz = function(filename, ...){
 #io$acc_dir <- "../scNMT_NOMeWorkFlow/bismarkSE/CX/coverage2cytosine_1based/filt/binarised"
 #io$rna_file <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
 #io$outfile <- "plots/zoom"
-#io$rna_de <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
-#io$met_de <- "tables/difmetA_vs_B.tsv"
-#io$acc_de <- "tables/difaccA_vs_B.tsv"
+
+io$rna_de <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
+io$met_de <- "tables/difmetA_vs_B.tsv"
+io$acc_de <- "tables/difaccA_vs_B.tsv"
 
 ## Options ##
 opts <- list()
-opts$gene <- "IKZF3"
+opts$gene <- "PDZK1"
 #opts$gene <- "COASY"
 opts$window <- 10000
 opts$slide <- 1000
@@ -76,6 +77,7 @@ opts$up    <- 20000
 opts$down  <- 20000
 opts$features <- c("promoters", 
                    "MCF7_ER_peaks", "MCF7_H3K27ac_peaks")
+
 
 
 dir.create(io$outfile, recursive = TRUE)
@@ -117,6 +119,7 @@ groups <- fread(io$groups) %>%
 
 groups$sample <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", groups$sample)
 
+
 metacc <- list(acc = paste0(io$acc_dir, "/", cells, "_GpC.gz"),
                met = paste0(io$met_dir, "/", cells, "_CpG.gz")) %>%
   map(~.[file.exists(.)]) %>%
@@ -128,7 +131,7 @@ metacc <- list(acc = paste0(io$acc_dir, "/", cells, "_GpC.gz"),
         
         map2(cells, ~.x[, sample := .y]) %>%
         rbindlist() %>% 
-        .[, .(rate = mean(rate)), .(sample=sub("-","",sample), chr, gene, start, end)] %>%
+        .[, .(rate = mean(rate)), .(sample, chr, gene, start, end)] %>%
         merge(groups, by = "sample")
             
           )
@@ -153,6 +156,7 @@ means <- map(metacc, ~.[, .(mean = mean(rate), sd = sd(rate), .N), .(start, end,
 
 rna$sample <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", rna$sample)
 
+
 cors <- map2(metacc, names(metacc), ~.x[, omic := .y]) %>%
   rbindlist() %>%
   dcast(sample + start + end ~ omic, value.var = "rate") %>%
@@ -170,10 +174,10 @@ mean_plot <- map2(means, names(means),
                   ~{
                     if (.y == "acc") {
                       ylab <- "Accessibility"
-                      colours <- c("dodgerblue1", "dodgerblue4", "blue","deepskyblue")
+                      colours <- c("dodgerblue1", "dodgerblue4", "blue")
                     } else {
                       ylab <- "Methylation"
-                      colours <- c("orangered1", "orangered4", "red", "darkorange1")
+                      colours <- c("orangered1", "orangered4", "red")
                     }
                     ylab <- ifelse(.y == "acc", "Accessibility", "Methylation")
                     ggplot(.x, aes(start, mean, colour = group, fill = group)) +

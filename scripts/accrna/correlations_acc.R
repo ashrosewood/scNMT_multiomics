@@ -52,7 +52,7 @@ library(stringr)
 #io$plot_dir <- "plots/cor_acc/"
 
 
-opts$anno_regex <- "CGI_promoter|MCF7_ER_peaks|H3K27ac_peaks|body|Repressed|Enhancer|CTCF"
+opts$anno_regex <- "promoter|ER_peak|H3K27ac|body|Repressed|Enhancer|CTCF"
 opts$gene_overlap_dist <- 1e5 # overlap annoations with genes within xx bp
 opts$min_weight_met <- 1
 opts$min_cells_met <- 10 # loci must have observations in this many cells
@@ -86,6 +86,8 @@ rna$ens_id <- rownames(rna)
 #rna <- setDT(rna, keep.rownames = "ens_id")
 #rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
 #rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
+
+colnames(rna) <- sub("D","_", colnames(rna))
 
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%
@@ -195,6 +197,8 @@ cors <- metrna[, compute_cor(exp, rate, N), .(anno, id, gene, ens_id.x)] %>%
   .[, padj := p.adjust(p, method = "fdr"), .(anno)] %>%
   .[, logpadj := -log10(padj)] %>%
   .[, sig := padj < opts$p_cutoff]
+
+cors <- subset(cors, logpadj < 100)
 
 # labs <- paste0(c("q < ", "q >= "), opts$p_cutoff)
 labs <- c("NS", "Significant")

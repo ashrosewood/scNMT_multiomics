@@ -64,8 +64,8 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 ## Define options ##
 
 # Define stage and lineage
-opts$groupA <- 0
-opts$groupB <- 1
+opts$groupA <- "TDC1"
+opts$groupB <- "TDE8"
 opts$groupC <- 2
 opts$groupD <- 3
 
@@ -110,9 +110,12 @@ sample_metadata <- fread(io$sample.metadata)
 
 sample_metadata$id_rna <- gsub("-","",sample_metadata$sample)
 
+groups$sample <- sub("D","_",groups$id_rna)
+
 sample_metadata <- sample_metadata %>% 
   .[context == "CG" & pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE] %>%
   merge(groups, by = "id_rna")
+
   
 opts$cells <- sample_metadata[, id_rna]
 
@@ -139,7 +142,13 @@ feature_metadata$`0` <- setkey(feature_metadata$`0`, chr, start, end) %>%
 feature_metadata$`1` <- feature_metadata$`1`[, ens_id := id] %>% 
   merge(gene_metadata, by = "ens_id")
 
-feature_metadata <- map(feature_metadata, ~.[, .(id, anno, gene)]) %>%
+feature_metadata$`1` <- feature_metadata$`1`[,2:8]
+colnames(feature_metadata$`1`) <- c("chr", "start", "end", "strand", "id", "anno", "gene")
+
+feature_metadata$`0` <- feature_metadata$`0`[,c("chr", "i.start", "i.end", "i.strand", "id", "anno", "gene")]
+colnames(feature_metadata$`0`) <- c("chr", "start", "end", "strand", "id", "anno", "gene")
+
+feature_metadata <- map(feature_metadata, ~.[, .(id, anno, gene, chr, start, end, strand)]) %>%
   rbindlist()
 
 
@@ -161,7 +170,7 @@ sample_metadata[group == opts$groupC, groupABC := "C"]
 sample_metadata[group == opts$groupD, groupABC := "D"]
 
 # Merge methylation data and sample metadata
-data <- merge(data, sample_metadata[, .(sample, group = groupABC)])
+data <- merge(data, sample_metadata[, .(sample, group = groupABC)], by = "sample")
 
 data[is.na(data)] <- 0
 
@@ -219,15 +228,15 @@ difmetacc <- function(comparison) {
                 if (opts$statistical.test == "binomial") {
                     diff <- data[, .(
                         A_met=sum(.SD[group==A,N*(rate/100)]), A_unmet=sum(.SD[group==A,N*(1-rate/100)]),
-                        B_met=sum(.SD[group==B,N*(rate/100)]), B_unmet=sum(.SD[group==B,N*(1-rate/100)])), by = c("id","anno", "gene")] %>%
-                        .[,p.value := fisher.test(x = matrix( c(A_met, A_unmet, B_met, B_unmet), nrow=2, ncol=2))[["p.value"]], by=c("id","anno", "gene")] %>%
+                        B_met=sum(.SD[group==B,N*(rate/100)]), B_unmet=sum(.SD[group==B,N*(1-rate/100)])), by = c("id","anno", "gene","chr","start","end","strand")] %>%
+                        .[,p.value := fisher.test(x = matrix( c(A_met, A_unmet, B_met, B_unmet), nrow=2, ncol=2))[["p.value"]], by=c("id","anno", "gene","chr","start","end","strand")] %>%
                         .[,c(paste0("rate",A),paste0("rate",B)):=list(100*(A_met/(A_met+A_unmet)), 100*(B_met/(B_met+B_unmet)))]
     # T-test under normality assumption
                 } else if (opts$statistical.test == "t.test") {
                     diff <- data[, .(
                         N_A = .SD[group==A,.N], N_B = .SD[group==B,.N],
                         rateA = mean(.SD[group==A,rate]), rateB = mean(.SD[group==B,rate]),
-                        p.value = t.test(x=.SD[group==B,m], y=.SD[group==A,m], var.equal=FALSE)[["p.value"]]), by = c("id","anno", "gene")]
+                        p.value = t.test(x=.SD[group==B,m], y=.SD[group==A,m], var.equal=FALSE)[["p.value"]]), by = c("id","anno", "gene","chr","start","end","strand")]
                 }
 
 # Multiple testing correction and define significant hits
