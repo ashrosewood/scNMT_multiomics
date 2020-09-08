@@ -114,7 +114,7 @@ sample_metadata$id_rna <- sub("_","",sample_metadata$sample)
 #groups$sample <- sub("D","_",groups$id_rna)
 
 sample_metadata <- sample_metadata %>%
-  .[context == "CG" & pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE] %>%
+  .[context == "GC" & pass_accQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE] %>%
   merge(groups, by = "id_rna")
 
 opts$cells <- sample_metadata[, id_rna]
