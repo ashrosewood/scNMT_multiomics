@@ -64,9 +64,9 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 ## Define options ##
 
 # Define stage and lineage
-opts$groupA <- "TDC1"
-opts$groupB <- "TDE8"
-opts$groupC <- 2
+opts$groupA <- "M7C1"
+opts$groupB <- "M7T2"
+opts$groupC <- "M7T4"
 opts$groupD <- 3
 
 # Overlap genomic features with nearby genes?
@@ -108,9 +108,9 @@ groups <- fread(io$groups)
 sample_metadata <- fread(io$sample.metadata)
 #sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
 
-sample_metadata$id_rna <- gsub("-","",sample_metadata$sample)
+sample_metadata$id_rna <- sub("_","",sample_metadata$sample)
 
-groups$sample <- sub("D","_",groups$id_rna)
+#groups$sample <- sub("D","_",groups$id_rna)
 
 sample_metadata <- sample_metadata %>% 
   .[context == "CG" & pass_metQC == TRUE & pass_CHHQC == TRUE & pass_CHGQC == TRUE] %>%
