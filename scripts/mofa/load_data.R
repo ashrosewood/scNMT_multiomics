@@ -41,41 +41,42 @@ library(SummarizedExperiment)
 
 
 opts$met.annoname <- c(
-#    "CGI_promoters1000",
+    "body1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_H3K27ac_peaks"#,
-#    "nonCGI_promoters1000"
+    "MCF7_H3K27ac_peaks",
+    "promoters1000"
 )
 
 opts$acc.annoname <- c(
-#    "CGI_promoters1000",
+    "body1000",
     "MCF7_ChromHMM_Enhancer",
-    "MCF7_H3K27ac_peaks"#,
-#    "nonCGI_promoters1000"
+    "MCF7_H3K27ac_peaks",
+    "promoters1000"
 )
 
 opts$met.annos <- c(
-#    "CGI_promoter",
+    "body",
     "Enhancer",
-    "MCF7_H3K27ac_peaks"#,
-#    "nonCGI_promoter"
+    "MCF7_H3K27ac_peaks",
+    "promoter"
 )
 
 opts$acc.annos <- c(
-#    "CGI_promoter",
+    "body",
     "Enhancer",
-    "MCF7_H3K27ac_peaks"#,
-#    "nonCGI_promoter"
+    "MCF7_H3K27ac_peaks",
+    "promoter"
 )
 
 ####### TEST INPUT #########
 #io$met.dir  <- "../scNMT_NOMeWorkFlow/data/met"
 #io$acc.dir  <- "../scNMT_NOMeWorkFlow/data/acc"
-#io$rna.file <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
+#io$rna.file <- "../scRNA_SMARTseq2/data/seurat/SeuratObject_CCred.rds"
+#io$rna.file <- "../scRNA_SMARTseq2/SO_softQC.rds"
 
 #io$sample.metadata <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
-#io$annos_dir       <- "data/anno"
-#io$gene_metadata   <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
+#io$annos_dir       <- "../scNMT_NOMeWorkFlow/data/anno"
+#io$gene_metadata   <- "../scRNA_SMARTseq2/data/gene_metadata.tsv"
 
 #io$outdir <- "data"
 
@@ -284,7 +285,7 @@ met_dt$var[is.na(met_dt$var)] <- 0
 met_dt <- met_dt[N>=opts$met_min.CpGs]
 
 # Filter features by  minimum number of cells
-met_dt[,N:=.N,by=c("id","anno","gene")]  %>% .[N>=opts$met_min.cells] %>% .[,N:=NULL]
+met_dt[,Num_cells:=.N,by=c("id","anno","gene")]  %>% .[Num_cells>=opts$met_min.cells] %>% .[,Num_cells:=NULL] 
 
 # Filter features by variance
 met_dt <- met_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0.1] %>% .[,var:=NULL] %>% droplevels()
@@ -298,7 +299,7 @@ acc_dt$var[is.na(acc_dt$var)] <- 0
 acc_dt <- acc_dt[N>=opts$acc_min.GpCs]
 
 # Filter features by  minimum number of cells
-acc_dt[,N:=.N,by=c("id","anno","gene")]  %>% .[N>=opts$acc_min.cells] %>% .[,N:=NULL]
+acc_dt[,Num_cells:=.N,by=c("id","anno","gene")]  %>% .[Num_cells>=opts$acc_min.cells] %>% .[,Num_cells:=NULL]
 
 # Filter features by variance
 acc_dt <- acc_dt[,var:=var(m), by=c("id","anno")] %>% .[var>0.1] %>% .[,var:=NULL] %>% droplevels()
@@ -378,9 +379,21 @@ data2 <- met_dt %>% .[,c("sample","id","m","anno")] %>%
 data3 <- acc_dt %>% .[,c("sample","id","m","anno")] %>%  
   setnames(c("sample","feature","value","feature_group")) %>% .[,c("feature","feature_group","sample_group"):=list(paste0("acc_",feature), paste0("acc_",feature_group), "MCF7")]
 
-temp2 <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3", data1$sample)
+temp1 <- sub('_S.*', '', data1$sample)
 
-data1$sample <- temp2
+data1$sample <- temp1
+
+temp2 <- gsub("BSM7E6", "M7E6A", data2$sample)
+temp2 <- gsub("T_", "TD", temp2)
+temp2 <- sub('_S.*', '', temp2)
+
+data2$sample <- temp2
+
+temp3 <- gsub("BSM7E6", "M7E6A", data3$sample)
+temp3 <- gsub("T_", "TD", temp3)
+temp3 <- sub('_S.*', '', temp3)
+
+data3$sample <- temp3
 
 all_rep <- Reduce(intersect,list(data1$sample,data2$sample,data3$sample))
 
@@ -403,15 +416,22 @@ met_cells <- as.character(unique(data2$sample))
 rna_cells <- as.character(unique(data1$sample))
 acc_cells <- as.character(unique(data3$sample))
 
-rna_dt$sample <- temp2
+rna_dt$sample <- temp1
+met_dt$sample <- temp2
+acc_dt$sample <- temp3
 
-met_anno_list <- c("CGI_promoter", "Enhancer", "MCF7_H3K27ac_peaks", "nonCGI_promoter")
-acc_anno_list <- c("CGI_promoter", "Enhancer",  "MCF7_H3K27ac_peaks", "nonCGI_promoter")
+met_anno_list <- c("promoter", "Enhancer", "MCF7_H3K27ac_peaks", "body")
+acc_anno_list <- c("promoter", "Enhancer",  "MCF7_H3K27ac_peaks", "body")
 
 rna_matrix <- rna_dt[,c("gene","expr","sample")] %>%
   .[,c("sample","gene"):=list(as.character(sample),as.character(gene))] %>%
   .[,sample:=factor(sample,levels=Reduce(intersect,list(rna_cells,acc_cells,met_cells)))] %>%
   dcast(sample~gene, value.var="expr", drop=F, fun.aggregate=sum) %>% matrix.please() %>% t
+
+#temp2 <- gsub("BSM7E6", "M7E6A", met_dt$sample)
+#temp2 <- sub('_([^_]*)$', '', temp2)
+
+#met_dt$sample <- temp2
 
 met_matrix_list <- list()
 for (n in unique(met_dt$anno)) {
@@ -428,6 +448,11 @@ for (n in unique(met_dt$anno)) {
 
 cat("\n")
 
+#temp3 <- gsub("BSM7E6", "M7E6A", acc_dt$sample)
+#temp3 <- sub('_([^_]*)$', '', temp3)
+
+#acc_dt$sample <- temp3
+
 acc_matrix_list <- list()
 for (n in unique(acc_dt$anno)) {
   acc_matrix_list[[paste("acc",n,sep="_")]] <- acc_dt[anno==n,c("id","gene","m","sample")] %>%
@@ -441,7 +466,7 @@ for (n in unique(acc_dt$anno)) {
               100*mean(is.na(acc_matrix_list[[paste("acc",n,sep="_")]]))))
 }
 
-all_matrix_list <- c(met_matrix_list,acc_matrix_list)
+all_matrix_list <- c(rna=list(rna_matrix), met_matrix_list,acc_matrix_list)
 
 saveRDS(all_matrix_list, "data/all_matrix_list.rds")
 

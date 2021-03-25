@@ -56,18 +56,18 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 #io$basedir <- "/Volumes/Data/data/hisham/"
 #io$sample.metadata <- "../scNMT_NOMeWorkFlow/tables//sample_stats_qcPass.txt" 
 #io$data.dir <- "../scNMT_NOMeWorkFlow/data/met"
-#io$annos_dir  <- "data/anno"
-#io$gene.metadata <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
+#io$annos_dir  <- "../scNMT_NOMeWorkFlow/data/anno"
+#io$gene.metadata <- "../scRNA_SMARTseq2/data/gene_metadata.tsv"
 #io$groups <- "data/groups.tsv"
 #io$outfile <- "tables/difmet.tsv"
 
 ## Define options ##
 
 # Define stage and lineage
-opts$groupA <- "M7C1"
-opts$groupB <- "M7T2"
-opts$groupC <- "M7T4"
-opts$groupD <- 3
+opts$groupA <- "M7C"
+opts$groupB <- "M7E"
+opts$groupC <- "TDC"
+opts$groupD <- "TDE"
 
 # Overlap genomic features with nearby genes?
 opts$OverlapWithGenes <- TRUE
@@ -97,8 +97,6 @@ opts$min.diff <- 5
 opts$threshold_fdr <- 0.10
 
 
-
-
 ###############
 ## Load data ##
 ###############
@@ -108,7 +106,13 @@ groups <- fread(io$groups)
 sample_metadata <- fread(io$sample.metadata)
 #sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
 
-sample_metadata$id_rna <- sub("_","",sample_metadata$sample)
+sample_metadata$id_rna <- gsub("BSM7E6", "M7E6A", sample_metadata$sample)
+sample_metadata$id_rna <- sub("T_", "TD", sample_metadata$id_rna)
+sample_metadata$id_rna <- sub('_S.*', '', sample_metadata$id_rna)
+
+#sample_metadata$id_rna <- sub("_","",sample_metadata$sample)
+
+groups$id_rna <- sub('_S.*', '', groups$id_rna)
 
 #groups$sample <- sub("D","_",groups$id_rna)
 
@@ -241,7 +245,7 @@ difmetacc <- function(comparison) {
 
 # Multiple testing correction and define significant hits
                 diff %>%
-                    .[,diff:=diff[,10]-diff[,9]] %>%
+                    .[,diff:=diff[,12]-diff[,13]] %>%
                     .[,c("padj_fdr") := list(p.adjust(p.value, method="fdr")), by="anno"] %>%
                     .[,c("log_padj_fdr") := list(-log10(padj_fdr))] %>%
                     .[,sig:=(padj_fdr<=opts$threshold_fdr & abs(diff)>opts$min.diff)] %>%

@@ -29,13 +29,13 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na="NA")
 
 ### TEST INPUT ###
 #io <- list()
-#io$seurat <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
+#io$seurat <- "../scRNA_SMARTseq2/data/seurat/SeuratObject.rds"
 #io$out <- "data/groups.tsv"
 
 dir.create(dirname(io$out))
 
 seurat <- readRDS(io$seurat)
-Idents(seurat) <- "seurat_clusters"
+Idents(seurat) <- "origin"
 groups <- Idents(seurat) %>% 
   as.data.frame() %>% 
   setDT(keep.rownames = "id_rna") %>%
@@ -46,5 +46,7 @@ groups[, id := strsplit(id_rna, "_") %>%
          map_chr(2) %>% 
          gsub("([A-H])0", "\\1", .) %>% 
          paste0("sc_", .)]
+
+groups$group <- substr(groups$group, 1, 3)
 
 fwrite_tsv(groups, io$out)

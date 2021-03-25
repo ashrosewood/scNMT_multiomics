@@ -26,8 +26,7 @@ if( !is.na(charmatch("--help",args)) || !is.na(charmatch("--help",args)) ){
 }
 
 library(MultiAssayExperiment)
-library(MOFA)
-library(MOFAdata)
+library(MOFA2)
 library(ggplot2)
 library(rhdf5)
 library(stringr)
@@ -36,23 +35,61 @@ library(Rtsne)
 library(irlba)
 library(data.table)
 library(png)
+library(Seurat)
+library(purrr)
+library(ggpubr)
 
 ### TEST INPUT ###
-io$data <- "data/all_matrix_list.rds"
-io$model <- "data/hdf5/model_trained.hdf5"
-io$plotdir <- "plots"
-opts$clusters <- 3
+#io$data <- "data/all_matrix_list.rds"
+#io$model <- "data/hdf5/model_trained.hdf5"
+#io$plotdir <- "plots"
+#opts$clusters <- 3
 
 my_data <- readRDS(io$data)
 
-MOFAobject <- createMOFAobject(my_data)
+for (i in seq(1:length(my_data))) {
+    my_data[[i]] <- my_data[[i]][(which(rowSums(my_data[[i]], na.rm = T) != 0)),]
+}
 
-MOFAobject <- loadModel(io$model, MOFAobject)
+good_cells <- intersect(intersect(colnames(my_data$rna),colnames(my_data$met_body)), colnames(my_data$acc_body))
+
+# Create MOFAobject
+MOFAobject <- create_mofa(list("RNA" = my_data$rna[,good_cells], "met_body" = my_data$met_body[,good_cells], "met_Enhancer" = my_data$met_Enhancer[,good_cells], "met_H3K27ac" = my_data$met_MCF7_H3K27ac_peaks[,good_cells], "acc_body" = my_data$acc_body[,good_cells], "acc_Enhancer" = my_data$acc_Enhancer[,good_cells], "acc_H3K27ac" = my_data$acc_MCF7_H3K27ac_peaks[,good_cells]))
+
+MOFAobject <- load_model(io$model)
+
+sample_metadata <- data.frame(sample = samples_names(MOFAobject)[[1]],
+                              condition = substr(samples_names(MOFAobject)[[1]],1,3)
+                              )
+
+samples_metadata(MOFAobject) <- sample_metadata
+
+plot_data_overview(MOFAobject)
+
+plot_factor_cor(MOFAobject, cluster = T)
 
 png(paste0(io$plotdir,"/full_variance.png"))
-plotVarianceExplained(MOFAobject, cluster = T)
+plot_variance_explained(MOFAobject, x="factor", y="view", legend = T)
 dev.off()
 
+plot_top_weights(MOFAobject, view = "RNA", factor = 1, nfeatures = 10, scale = T, abs=T)
+plot_top_weights(MOFAobject, view = "acc_body", factor = 1, nfeatures = 10, scale = T, abs=T)
+
+plot_factor(MOFAobject, factor = 1, scale = T, add_violin = T, dodge = T, dot_size = 1, legend = T)
+
+plot_data_heatmap(MOFAobject, view = "RNA", factor = 1, features = 20, cluster_rows = TRUE, cluster_cols = FALSE, show_rownames = TRUE, show_colnames = FALSE)
+
+plot_data_scatter(MOFAobject, view = "RNA", factor = 1, features = 5, add_lm = T, color_by = "condition")
+
+set.seed(42)
+
+model <- run_tsne(MOFAobject)
+
+plot_dimred(model, method = "TSNE", color_by = "condition")
+
+################### old MOFA ####################################
+
+'''
 variance_grid <- function (object, cluster = TRUE, ...) 
 {
     R2_list <- calculateVarianceExplained(object, ...)
@@ -197,3 +234,5 @@ for (algorithm in algorithms) {
   # Save coordinates
   # fwrite(to.plot[,c("sample","V1","V2")], sprintf("%s/%s_coordinates.txt",io$outdir,algorithm))
 }
+
+'''

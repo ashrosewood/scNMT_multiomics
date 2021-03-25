@@ -47,7 +47,7 @@ rule all:
        "plots/met_volcano_A_vs_B.png",
        "plots/dif_scatter_A_vs_B.png",
        "plots/dif_venn_A_vs_B.svg",
-       "plots/zoom/zoom_plot.pdf",
+#       "plots/zoom/zoom_plot.pdf",
        "plots/full_variance.png",
        "plots/factor_variance.png",
        "plots/topweights_F1.png",

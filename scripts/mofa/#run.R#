@@ -72,7 +72,7 @@ for (i in seq(1:length(my_data))) {
 good_cells <- intersect(intersect(colnames(my_data$rna),colnames(my_data$met_body)), colnames(my_data$acc_body))
 
 # Create MOFAobject
-MOFAobject <- create_mofa(list("RNA" = my_data$rna[,good_cells], "met_body" = my_data$met_body[,good_cells], "met_H3K27ac" = my_data$met_MCF7_H3K27ac_peaks[,good_cells], "met_promoter" = my_data$met_promoter[,good_cells], "acc_body" = my_data$acc_body[,good_cells], "acc_H3K27ac" = my_data$acc_MCF7_H3K27ac_peaks[,good_cells], "acc_promoter" = my_data$acc_promoter[,good_cells]))
+MOFAobject <- create_mofa(list("met_body" = my_data$met_body[,good_cells], "met_H3K27ac" = my_data$met_MCF7_H3K27ac_peaks[,good_cells], "met_promoter" = my_data$met_promoter[,good_cells], "acc_body" = my_data$acc_body[,good_cells], "acc_H3K27ac" = my_data$acc_MCF7_H3K27ac_peaks[,good_cells], "acc_promoter" = my_data$acc_promoter[,good_cells]))
 
 # Data processing options
 DataOptions <- get_default_data_options(MOFAobject)
@@ -95,7 +95,7 @@ MOFAmodel <- prepare_mofa(MOFAobject,
 )
 
 # Train the model
-outfile <- sprintf("%s/hdf5/model_%s.hdf5",io$outdir,io$trial)
+outfile <- sprintf("%s/hdf5/noRNA_model_%s.hdf5",io$outdir,io$trial)
 model <- run_mofa(MOFAmodel, outfile)
 
 

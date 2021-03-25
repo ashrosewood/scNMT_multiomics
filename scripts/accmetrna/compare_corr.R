@@ -84,6 +84,8 @@ met[,Type := "met"]
 
 merg <- rbind(acc, met)
 
+merg <- subset(merg, sig == TRUE)
+
 p <-
   ggplot(merg, aes(x=anno, y=r, fill=Type)) +
   geom_boxplot(aes(fill = Type), alpha=1.0, outlier.shape = NA) +
@@ -113,4 +115,4 @@ if(!exists(io$plot_dir)){
   dir.create(io$plot_dir)
 }
 
-save_plot(paste(io$plot_dir, "accmetrna_correlations.boxplot.pdf", sep="/"), p, base_width = 6, base_height = 6)
+save_plot(paste(io$plot_dir, "accmetrna_correlations_significant.boxplot.pdf", sep="/"), p, base_width = 6, base_height = 6)

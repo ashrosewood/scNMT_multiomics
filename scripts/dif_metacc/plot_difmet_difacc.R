@@ -35,10 +35,10 @@ library(nVennR)
 #io <- list()
 #io$difmet <- "tables/difmet.tsv"
 #io$difacc <- "tables/difacc.tsv"
-io$data.dir <- "tables"
+#io$data.dir <- "tables/cellLine"
 
 
-io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes.tsv"
+io$difrna <- "../scRNA_SMARTseq2/data/seurat/post_DEgenes.tsv"
 #io$difrna <- "../scNMT_transcriptomeMapping/data/seurat/post_DEgenes_CCreduced.tsv"
 
 

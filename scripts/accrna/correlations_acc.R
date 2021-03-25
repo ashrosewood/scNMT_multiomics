@@ -46,11 +46,11 @@ library(stringr)
 ### TEST INPUT ###
 #io$meta_data <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
 #io$met_dir <- "../scNMT_NOMeWorkFlow/data/acc"
-#io$rna_sce <- "../scNMT_transcriptomeMapping/data/seurat/SeuratObject.rds"
-#io$anno_dir <- "data/anno"
-#io$gene_file <- "../scNMT_transcriptomeMapping/data/gene_metadata.tsv"
+#io$rna_sce <- "../scRNA_SMARTseq2/data/seurat/SeuratObject.rds"
+#io$anno_dir <- "../scNMT_NOMeWorkFlow/data/anno"
+#io$gene_file <- "../scRNA_SMARTseq2/data/gene_metadata.tsv"
 #io$plot_dir <- "plots/cor_acc/"
-
+io$metacc_corr <- "../scNMT_NOMeWorkFlow/plots/corr/acc_met_correlations_loci.tsv"
 
 opts$anno_regex <- "promoter|ER_peak|H3K27ac|body|Repressed|Enhancer|CTCF"
 opts$gene_overlap_dist <- 1e5 # overlap annoations with genes within xx bp
@@ -87,7 +87,11 @@ rna$ens_id <- rownames(rna)
 #rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
 #rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
 
-colnames(rna) <- sub("D","_", colnames(rna))
+#colnames(rna) <- sub("D","_", colnames(rna))
+
+meta$id_rna <- gsub("BSM7E6", "M7E6A", meta$id_rna)
+meta$id_rna <- sub("T_", "TD", meta$id_rna)
+meta$id_rna <- sub('_S.*', '', meta$id_rna)
 
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%
@@ -151,6 +155,10 @@ anno[["FALSE"]] <- setkey(anno[["FALSE"]], chr, start, end) %>%
 anno <- map(anno, ~.[, .(id, anno, gene, ens_id)]) %>%
   rbindlist()
 
+#metacc_corr <- read.table(io$metacc_corr, header=T, sep = "\t", stringsAsFactors=F)
+
+#met <- merge(met, metacc_corr, by = c("anno","id"), allow.cartesian = T)
+#met <- subset(met, r > 0.5 | r < -0.5)
 
 met <- merge(met, anno, by = c("anno", "id"), allow.cartesian = TRUE) # note some loci have >1 gene -> cartesian join
 
