@@ -245,7 +245,7 @@ difmetacc <- function(comparison) {
 
 # Multiple testing correction and define significant hits
                 diff %>%
-                    .[,diff:=diff[,12]-diff[,13]] %>%
+                    .[,diff:=diff[,13]-diff[,14]] %>%
                     .[,c("padj_fdr") := list(p.adjust(p.value, method="fdr")), by="anno"] %>%
                     .[,c("log_padj_fdr") := list(-log10(padj_fdr))] %>%
                     .[,sig:=(padj_fdr<=opts$threshold_fdr & abs(diff)>opts$min.diff)] %>%

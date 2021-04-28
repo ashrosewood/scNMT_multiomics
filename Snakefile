@@ -42,19 +42,19 @@ rule all:
        "plots/cor_met/met_rna_correlations.pdf",
        "plots/cor_accmetrna/accmetrna_correlations.scatter.pdf",
        "plots/cor_accmetrna/accmetrna_correlations.tsv",
-       "plots/cor_accmetrna/accmetrna_correlations.boxplot.pdf",
+       "plots/cor_accmetrna/accmetrna_correlations_significant.boxplot.pdf",
        "plots/acc_volcano_A_vs_B.png",
        "plots/met_volcano_A_vs_B.png",
        "plots/dif_scatter_A_vs_B.png",
        "plots/dif_venn_A_vs_B.svg",
 #       "plots/zoom/zoom_plot.pdf",
        "plots/full_variance.png",
-       "plots/factor_variance.png",
-       "plots/topweights_F1.png",
-       "plots/topweights_F2.png",
-       "plots/weights_HM_F1.png",
-       "plots/weights_HM_F2.png",
-       "plots/MOFA_UMAP.png"
+#       "plots/factor_variance.png",
+#       "plots/topweights_F1.png",
+#       "plots/topweights_F2.png",
+#       "plots/weights_HM_F1.png",
+#       "plots/weights_HM_F2.png",
+#       "plots/MOFA_UMAP.png"
        
 
 include: "rules/correlations.smk"

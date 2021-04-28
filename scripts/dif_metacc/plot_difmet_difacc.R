@@ -35,7 +35,7 @@ library(nVennR)
 #io <- list()
 #io$difmet <- "tables/difmet.tsv"
 #io$difacc <- "tables/difacc.tsv"
-#io$data.dir <- "tables/cellLine"
+io$data.dir <- "tables"
 
 
 io$difrna <- "../scRNA_SMARTseq2/data/seurat/post_DEgenes.tsv"

@@ -93,6 +93,8 @@ meta$id_rna <- gsub("BSM7E6", "M7E6A", meta$id_rna)
 meta$id_rna <- sub("T_", "TD", meta$id_rna)
 meta$id_rna <- sub('_S.*', '', meta$id_rna)
 
+colnames(rna) <- sub('_S.*', '', colnames(rna))
+
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%
   setDT(keep.rownames = "ens_id") %>%

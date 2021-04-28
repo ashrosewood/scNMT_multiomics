@@ -89,7 +89,12 @@ rna$ens_id <- rownames(rna)
 #rna <- melt(rna, id.vars = "ens_id", value.name = "exp", variable.name = "id_rna")
 #rna <- merge(rna, meta[, .(id_rna,sample)], by = "id_rna", allow.cartesian=TRUE)
 
-colnames(rna) <- sub("D","_", colnames(rna))
+#colnames(rna) <- sub("D","_", colnames(rna))
+
+meta$id_rna <- gsub("BSM7E6", "M7E6A", meta$id_rna)
+meta$id_rna <- sub('_S.*', '', meta$id_rna)
+
+colnames(rna) <- sub('_S.*', '', colnames(rna))
 
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%

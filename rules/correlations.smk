@@ -23,7 +23,7 @@ rule compare_cor:
      output:
         "plots/cor_accmetrna/accmetrna_correlations.scatter.pdf",
         "plots/cor_accmetrna/accmetrna_correlations.tsv",
-        "plots/cor_accmetrna/accmetrna_correlations.boxplot.pdf"
+        "plots/cor_accmetrna/accmetrna_correlations_significant.boxplot.pdf"
      conda:
         "../envs/NMT_miltiomeCorr.yaml"
      shell:

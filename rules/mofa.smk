@@ -22,12 +22,12 @@ rule analyze_model:
         "data/hdf5/model_trained.hdf5"
      output:
         "plots/full_variance.png",
-	"plots/factor_variance.png",
-	"plots/topweights_F1.png",
-	"plots/topweights_F2.png",
-	"plots/weights_HM_F1.png",
-	"plots/weights_HM_F2.png",
-	"plots/MOFA_UMAP.png"
+#	"plots/factor_variance.png",
+#	"plots/topweights_F1.png",
+#	"plots/topweights_F2.png",
+#	"plots/weights_HM_F1.png",
+#	"plots/weights_HM_F2.png",
+#	"plots/MOFA_UMAP.png"
      conda:
         "../envs/MOFA.yaml"
      shell:
