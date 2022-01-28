@@ -78,10 +78,11 @@ meta <- fread(io$meta_data) %>%
 rna <- readRDS(io$rna_sce)
 rna <- rna@assays$RNA@data
 #colnames(rna) <- str_extract(colnames(rna),"_[A-Z0-9]+_")
-colnames(rna) <- gsub("(B)(10)1(_[A-Z0-9]+)","\\1C\\2\\3",colnames(rna))
+colnames(rna) <- gsub("_S.*", "", colnames(rna))
+colnames(rna) <- gsub("\\.", "_", colnames(rna))
 
 #meta$id_rna <- str_extract(meta$id,"_[A-Z0-9]+_")
-meta$id_rna <- meta$id
+meta$id_rna <- gsub("_S.*", "", meta$id)
 rna <- as.data.frame(rna)
 rna$ens_id <- rownames(rna)
 #rna <- rna[,unique(meta$id_rna)]
@@ -91,10 +92,10 @@ rna$ens_id <- rownames(rna)
 
 #colnames(rna) <- sub("D","_", colnames(rna))
 
-meta$id_rna <- gsub("BSM7E6", "M7E6A", meta$id_rna)
-meta$id_rna <- sub('_S.*', '', meta$id_rna)
+#meta$id_rna <- gsub("BSM7E6", "M7E6A", meta$id_rna)
+#meta$id_rna <- sub('_S.*', '', meta$id_rna)
 
-colnames(rna) <- sub('_S.*', '', colnames(rna))
+#colnames(rna) <- sub('_S.*', '', colnames(rna))
 
 rna <- rna %>%
   .[, intersect(colnames(rna),unique(meta[, id_rna]))] %>%

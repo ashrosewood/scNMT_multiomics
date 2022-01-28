@@ -83,9 +83,11 @@ plot_data_scatter(MOFAobject, view = "RNA", factor = 1, features = 5, add_lm = T
 
 set.seed(42)
 
-model <- run_tsne(MOFAobject)
+model <- run_tsne(MOFAobject, perplexity = floor((ncol(MOFAobject@data$RNA$group1) - 1) / 3))
 
+pdf("plots/MOFA_TNSE.pdf")
 plot_dimred(model, method = "TSNE", color_by = "condition")
+dev.off()
 
 ################### old MOFA ####################################
 

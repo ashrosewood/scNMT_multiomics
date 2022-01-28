@@ -72,7 +72,6 @@ opts$acc.annos <- c(
 #io$met.dir  <- "../scNMT_NOMeWorkFlow/data/met"
 #io$acc.dir  <- "../scNMT_NOMeWorkFlow/data/acc"
 #io$rna.file <- "../scRNA_SMARTseq2/data/seurat/SeuratObject_CCred.rds"
-#io$rna.file <- "../scRNA_SMARTseq2/SO_softQC.rds"
 
 #io$sample.metadata <- "../scNMT_NOMeWorkFlow/tables/sample_stats_qcPass.txt"
 #io$annos_dir       <- "../scNMT_NOMeWorkFlow/data/anno"
@@ -380,18 +379,19 @@ data3 <- acc_dt %>% .[,c("sample","id","m","anno")] %>%
   setnames(c("sample","feature","value","feature_group")) %>% .[,c("feature","feature_group","sample_group"):=list(paste0("acc_",feature), paste0("acc_",feature_group), "MCF7")]
 
 temp1 <- sub('_S.*', '', data1$sample)
+temp1 <- sub('\\.', '_', temp1)
 
 data1$sample <- temp1
 
-temp2 <- gsub("BSM7E6", "M7E6A", data2$sample)
-temp2 <- gsub("T_", "TD", temp2)
-temp2 <- sub('_S.*', '', temp2)
+#temp2 <- gsub("BSM7E6", "M7E6A", data2$sample)
+#temp2 <- gsub("T_", "TD", temp2)
+temp2 <- sub('_S.*', '', data2$sample)
 
 data2$sample <- temp2
 
-temp3 <- gsub("BSM7E6", "M7E6A", data3$sample)
-temp3 <- gsub("T_", "TD", temp3)
-temp3 <- sub('_S.*', '', temp3)
+#temp3 <- gsub("BSM7E6", "M7E6A", data3$sample)
+#temp3 <- gsub("T_", "TD", temp3)
+temp3 <- sub('_S.*', '', data3$sample)
 
 data3$sample <- temp3
 

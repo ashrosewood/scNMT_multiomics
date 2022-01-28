@@ -64,10 +64,10 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na = "NA")
 ## Define options ##
 
 # Define stage and lineage
-opts$groupA <- "M7C"
-opts$groupB <- "M7E"
-opts$groupC <- "TDC"
-opts$groupD <- "TDE"
+opts$groupA <- "0"
+opts$groupB <- "1"
+opts$groupC <- "2"
+#opts$groupD <- "TDE"
 
 # Overlap genomic features with nearby genes?
 opts$OverlapWithGenes <- TRUE
@@ -106,13 +106,14 @@ groups <- fread(io$groups)
 sample_metadata <- fread(io$sample.metadata)
 #sample_metadata$id <- gsub("(sc_[A-H][0-9]+)_.*","\\1", sample_metadata$id)
 
-sample_metadata$id_rna <- gsub("BSM7E6", "M7E6A", sample_metadata$sample)
-sample_metadata$id_rna <- sub("T_", "TD", sample_metadata$id_rna)
-sample_metadata$id_rna <- sub('_S.*', '', sample_metadata$id_rna)
+#sample_metadata$id_rna <- gsub("BSM7E6", "M7E6A", sample_metadata$sample)
+#sample_metadata$id_rna <- sub("T_", "TD", sample_metadata$id_rna)
+sample_metadata$id_rna <- sub('_S.*', '', sample_metadata$sample)
 
 #sample_metadata$id_rna <- sub("_","",sample_metadata$sample)
 
 groups$id_rna <- sub('_S.*', '', groups$id_rna)
+groups$id_rna <- sub('\\.', '_', groups$id_rna)
 
 #groups$sample <- sub("D","_",groups$id_rna)
 
@@ -171,7 +172,7 @@ data <- dir(io$data.dir, pattern = ".tsv.gz", full = TRUE) %>%
 sample_metadata[group == opts$groupA, groupABC := "A"]
 sample_metadata[group == opts$groupB, groupABC := "B"]
 sample_metadata[group == opts$groupC, groupABC := "C"]
-sample_metadata[group == opts$groupD, groupABC := "D"]
+#sample_metadata[group == opts$groupD, groupABC := "D"]
 
 # Merge methylation data and sample metadata
 data <- merge(data, sample_metadata[, .(sample, group = groupABC)], by = "sample")

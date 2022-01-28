@@ -35,18 +35,20 @@ fwrite_tsv <- partial(fwrite, sep = "\t", na="NA")
 dir.create(dirname(io$out))
 
 seurat <- readRDS(io$seurat)
-Idents(seurat) <- "origin"
+Idents(seurat) <- "seurat_clusters"
 groups <- Idents(seurat) %>% 
   as.data.frame() %>% 
   setDT(keep.rownames = "id_rna") %>%
   setnames(".", "group", skip_absent=T)  
 
 
-groups[, id := strsplit(id_rna, "_") %>% 
-         map_chr(2) %>% 
-         gsub("([A-H])0", "\\1", .) %>% 
-         paste0("sc_", .)]
+#groups[, id := strsplit(id_rna, "_") %>% 
+#         map_chr(2) %>% 
+#         gsub("([A-H])0", "\\1", .) %>% 
+#         paste0("sc_", .)]
 
-groups$group <- substr(groups$group, 1, 3)
+groups$id <- paste("sc", sub("_[^_]+$", "", groups$id_rna), sep = "_")
+
+#groups$group <- substr(groups$group, 1, 3)
 
 fwrite_tsv(groups, io$out)
